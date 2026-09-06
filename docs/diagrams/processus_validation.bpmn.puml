@@ -1,0 +1,48 @@
+@startbpmn
+title Processus de validation d'une contribution
+
+|Toi|
+start
+:Ouvrir une PR\n(code ou doc);
+
+|OpenCode|
+if (Type = code ?) then (oui)
+  :Review mécanique\n(tests, lint, build);
+  :Poser commentaires;
+else (non)
+endif
+
+|Hermes|
+if (Type = doc ?) then (oui)
+  :Review cohérence\n(vault, plan, MoSCoW);
+  :Poser commentaires;
+else (non)
+endif
+
+|Toi|
+:Lire les reviews;
+:Demander changements\nou Approuver;
+
+if (Approuvé ?) then (oui)
+  :Squash-merge\nsur main;
+  if (PR de validation\nde phase ?) then (oui)
+    :Tag manuel\n(vX-phase);
+  else (non)
+  endif
+  stop
+else (non)
+  :Itérer\n(branche éphémère mise à jour);
+  |OpenCode|
+  if (Code) then (oui)
+    :Re-review OpenCode;
+  else (non)
+  endif
+  |Hermes|
+  if (Doc) then (oui)
+    :Re-review Hermes;
+  else (non)
+  endif
+  |Toi|
+  :Re-approuver;
+  stop
+@enduml

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_1"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+
+  <bpmn:collaboration id="Collaboration_1">
+    <bpmn:participant id="Participant_Toi"     name="Toi"     processRef="Process_Toi"/>
+    <bpmn:participant id="Participant_OpenCode" name="OpenCode" processRef="Process_OpenCode"/>
+    <bpmn:participant id="Participant_Hermes"  name="Hermes"  processRef="Process_Hermes"/>
+    <bpmn:messageFlow id="MF_1" sourceRef="Task_ReviewOpenCode"   targetRef="Task_Approuver"/>
+    <bpmn:messageFlow id="MF_2" sourceRef="Task_ReviewHermes"    targetRef="Task_Approuver"/>
+    <bpmn:messageFlow id="MF_3" sourceRef="Task_DemanderChangements" targetRef="Task_ReReviewOpenCode"/>
+    <bpmn:messageFlow id="MF_4" sourceRef="Task_DemanderChangements" targetRef="Task_ReReviewHermes"/>
+  </bpmn:collaboration>
+
+  <bpmn:process id="Process_Toi" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_1" name="Ouvrir PR"/>
+    <bpmn:task    id="Task_Approuver"          name="Approuver (fond)"/>
+    <bpmn:exclusiveGateway id="GW_Approuve"     name="Approuvé ?"/>
+    <bpmn:task    id="Task_SquashMerge"        name="Squash-merge sur main"/>
+    <bpmn:exclusiveGateway id="GW_Phase"        name="PR validation de phase ?"/>
+    <bpmn:task    id="Task_TagManuel"          name="Tag manuel (vX-phase)"/>
+    <bpmn:endEvent   id="EndEvent_1"/>
+
+    <bpmn:sequenceFlow id="SF_1"  sourceRef="StartEvent_1"   targetRef="Task_Approuver"/>
+    <bpmn:sequenceFlow id="SF_2"  sourceRef="Task_Approuver" targetRef="GW_Approuve"/>
+    <bpmn:sequenceFlow id="SF_3"  name="oui" sourceRef="GW_Approuve"   targetRef="Task_SquashMerge"/>
+    <bpmn:sequenceFlow id="SF_4"  name="non" sourceRef="GW_Approuve"   targetRef="Task_DemanderChangements"/>
+    <bpmn:sequenceFlow id="SF_5"  sourceRef="Task_SquashMerge" targetRef="GW_Phase"/>
+    <bpmn:sequenceFlow id="SF_6"  name="oui" sourceRef="GW_Phase"     targetRef="Task_TagManuel"/>
+    <bpmn:sequenceFlow id="SF_7"  name="non" sourceRef="GW_Phase"     targetRef="EndEvent_1"/>
+    <bpmn:sequenceFlow id="SF_8"  sourceRef="Task_TagManuel"   targetRef="EndEvent_1"/>
+
+    <bpmn:task id="Task_DemanderChangements" name="Demander changements"/>
+  </bpmn:process>
+
+  <bpmn:process id="Process_OpenCode" isExecutable="false">
+    <bpmn:task    id="Task_ReviewOpenCode"   name="Review mécanique (tests, lint, build)"/>
+    <bpmn:task    id="Task_ReReviewOpenCode" name="Re-review OpenCode"/>
+  </bpmn:process>
+
+  <bpmn:process id="Process_Hermes" isExecutable="false">
+    <bpmn:task    id="Task_ReviewHermes"   name="Review cohérence (vault, plan, MoSCoW)"/>
+    <bpmn:task    id="Task_ReReviewHermes" name="Re-review Hermes"/>
+  </bpmn:process>
+</bpmn:definitions>
