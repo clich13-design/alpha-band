@@ -82,6 +82,9 @@ Permettre à un utilisateur **débutant ou grand public** de :
 | CU-06 | Sauvegarder / recharger un projet dans le navigateur | Théo | Should |
 | CU-07 | Utiliser un séquenceur pas-à-pas pour programmer un rythme | Théo | Should |
 | CU-08 | Partager un lien vers le morceau exporté | Théo | Could |
+| CU-09 | Export échoue (IndexedDB plein, erreur audio) → message d'erreur clair + action proposée | Marie, Théo | Must |
+| CU-10 | Boucle ou sample ne se charge pas → message d'erreur + fallback (boucle ignorée, piste muette) | Marie, Théo | Must |
+| CU-11 | Projet corrompu ou schéma obsolète → migration automatique ou message d'erreur + option de réinitialisation | Théo | Should |
 
 ---
 
@@ -121,14 +124,31 @@ Permettre à un utilisateur **débutant ou grand public** de :
   synthé simple (sawtooth + enveloppe ADSR), boîte à rythmes 808-style,
   sampler de boucles.
 - **F-INSTR-03** : Sélection de l'instrument actif par piste.
+- **F-INSTR-04** : Import de samples personnalisés (fichier audio local
+  via `<input type="file">`, décodage via `AudioContext.decodeAudioData`,
+  formats WAV et MP3 supportés). Le sample importé est assignable au
+  sampler comme n'importe quelle boucle de la bibliothèque.
+- **F-INSTR-05** : Boîte à rythmes 808 avec sons distincts par pad
+  (kick, snare, hi-hat ouvert, hi-hat fermé minimum) et contrôle de
+  pitch (±12 demi-tons) et de vélocité (0-127) par pad.
+- **F-INSTR-06** : Édition note par note sur le séquenceur du synthé :
+  pitch (chromatique, 2 octaves) et vélocité (0-127) par pas.
 
 #### F-SEQ — Séquenceur / Boucles
 
 - **F-SEQ-01** : Glisser-déposer une boucle depuis la bibliothèque vers
   une piste.
-- **F-SEQ-02** : Séquenceur pas-à-pas 16 pas pour la boîte à rythmes.
+- **F-SEQ-02** : Séquenceur pas-à-pas 16 pas pour la boîte à rythmes
+  (résolution 1/16, lié au BPM du transport ; 1 pas = 1 double-croche).
 - **F-SEQ-03** : Répéter une boucle en boucle (loop on/off).
-- **F-SEQ-04** : Réorganiser l'ordre des patterns sur la timeline.
+- **F-SEQ-04** : **Vue arrangement** — blocs réordonnables à la souris
+  sur la timeline (type GarageBand) ; chaque bloc représente un pattern
+  ou une boucle placée sur une piste ; le réordonnancement est
+  drag-and-drop horizontal.
+- **F-SEQ-05** : **Annuler / Refaire** (Ctrl+Z / Ctrl+Y) sur toutes
+  les actions de l'éditeur (ajout/suppression de piste, réglage de
+  volume, déplacement de bloc, activation d'un pas du séquenceur).
+  Profondeur minimale : 20 niveaux.
 
 #### F-MIX — Mixage et effets
 
@@ -233,11 +253,14 @@ Permettre à un utilisateur **débutant ou grand public** de :
 
 ### 5.1 Inclus (V1)
 
-- Tout le module F-TRANSPORT, F-INSTR, F-SEQ, F-MIX, F-EXPORT.
-- 3 instruments : synthé ADSR, boîte à rythmes 808, sampler de boucles.
+- Tout le module F-TRANSPORT, F-INSTR (01-06), F-SEQ (01-05), F-MIX, F-EXPORT.
+- 3 instruments : synthé ADSR, boîte à rythmes 808 (pads distincts + pitch/vélocité), sampler de boucles.
+- Import de samples personnalisés (WAV + MP3 via `<input type="file">`).
+- Vue arrangement drag-and-drop + annuler/refaire (20 niveaux).
 - 1 bibliothèque de 20 boucles minimum (royalty-free, à sourcer).
 - Export WAV (16 bits / 44,1 kHz stéréo).
 - Persistance IndexedDB avec versioning de schéma.
+- Gestion des erreurs d'export, de chargement et de migration de projet (CU-09, CU-10, CU-11).
 
 ### 5.2 Explicitement exclu (V1) — le « Won't » MoSCoW
 
