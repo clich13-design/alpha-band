@@ -133,11 +133,17 @@ Permettre à un utilisateur **débutant ou grand public** de :
 - **F-MIX-03** : Effet reverb (3 niveaux : sec / petit espace / grande
   salle) par piste.
 - **F-MIX-04** : Panoramique stéréo par piste.
+- **F-MIX-05** : Effet delay (temps en ms, feedback 0-90 %, mix sec/humide)
+  par piste, bypassable.
+- **F-MIX-06** : Égaliseur 3 bandes (low / mid / high, gain ±12 dB) par
+  piste, bypassable.
 
 #### F-EXPORT — Export
 
-- **F-EXPORT-01** : Export WAV (rendu offline via `OfflineAudioContext`).
-- **F-EXPORT-02** : Export MP3 (via `lamejs` ou `ffmpeg.wasm`).
+- **F-EXPORT-01** : Export WAV (rendu offline via `OfflineAudioContext`,
+  16 bits / 44,1 kHz stéréo).
+- **F-EXPORT-02** : _(retiré — MP3 reporté en V2 si besoin ; le WAV est
+  le format cible V1 pour préserver NF-PERF-01 startup < 3 s)_
 - **F-EXPORT-03** : Téléchargement direct (pas d'upload serveur).
 
 ---
@@ -167,13 +173,22 @@ Permettre à un utilisateur **débutant ou grand public** de :
 - **NF-UX-02** : Interface en français (langue du projet).
 - **NF-UX-03** : Tooltips explicites sur tous les contrôles audio non
   triviaux (reverb, ADSR).
+- **NF-UX-04** : **Audio unlock** — aucun son ne doit être émis avant
+  un premier geste utilisateur (clic, touche, touch). L'`AudioContext`
+  est créé à l'init mais reste suspendu jusqu'à ce geste ; un
+  message d'amorçage invite l'utilisateur à cliquer pour démarrer.
 
 ### 4.4 Robustesse et persistance
 
-- **NF-ROB-01** : Sauvegarde automatique du projet dans
-  `localStorage` toutes les 10 s.
+- **NF-ROB-01** : Sauvegarde automatique du projet dans **IndexedDB**
+  toutes les 10 s (quota 10-50 Mo selon navigateur, suffisant pour un
+  projet + ses `AudioBuffer` sérialisés).
 - **NF-ROB-02** : Récupération du dernier projet à la réouverture
-  (avec avertissement si > 24 h).
+  (avec avertissement dismissable si la dernière sauvegarde date de
+  plus de 24 h, basé sur `lastSavedAt` stocké dans le projet).
+- **NF-ROB-03** : Le format de sauvegarde est versionné (champ
+  `schemaVersion` dans l'objet projet) ; toute migration est
+  traitée à l'ouverture.
 
 ### 4.5 Sécurité et vie privée
 
@@ -198,8 +213,8 @@ Permettre à un utilisateur **débutant ou grand public** de :
 - Tout le module F-TRANSPORT, F-INSTR, F-SEQ, F-MIX, F-EXPORT.
 - 3 instruments : synthé ADSR, boîte à rythmes 808, sampler de boucles.
 - 1 bibliothèque de 20 boucles minimum (royalty-free, à sourcer).
-- Export WAV et MP3.
-- Persistance `localStorage`.
+- Export WAV (16 bits / 44,1 kHz stéréo).
+- Persistance IndexedDB avec versioning de schéma.
 
 ### 5.2 Explicitement exclu (V1) — le « Won't » MoSCoW
 
