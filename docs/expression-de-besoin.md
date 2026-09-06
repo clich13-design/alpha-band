@@ -1,8 +1,7 @@
-# Document d'expression de besoin (DEB) — projet-alpha
+# Document d'expression de besoin (DEB) — ALPHA-Band
 
-> **Statut** : V0 — rédigé par Hermes le 2026-09-06 à partir du cadrage et
-> des décisions Q1-Q4 du brainstorming. À soumettre à revue critique
-> OpenCode, puis validation humaine.
+> **Statut** : V2 — cadrage finalisé le 2026-09-06.
+> Nom de produit : **ALPHA-Band**. Nom de code interne : `projet-alpha`.
 
 ---
 
@@ -49,13 +48,16 @@ Permettre à un utilisateur **débutant ou grand public** de :
 ### 2.1 Persona principal — « Marie, 28 ans, curieuse »
 
 - **Profil** : pas musicienne, utilise Spotify et TikTok, a essayé
-  GarageBand sur iPad une fois mais n'a pas poursuivi.
-- **Besoin** : créer une boucle ou un jingle personnalisé pour une
-  story Instagram ou un projet perso.
+  GarageBand sur iPad une fois mais n'a pas poursuivi. Utilise un
+  PC portable à la maison (Windows ou macOS, navigateur moderne).
+- **Besoin** : créer une boucle ou un jingle personnalisé pour un
+  projet perso (vidéo, montage, tonalité de stream).
 - **Attente** : résultat audible en moins de 10 minutes, sans
   installation, sans lire une doc.
 - **Tolérance** : faible à la friction (pop-ups, étapes techniques,
   jargon audio).
+- **Note V2** : la cible V1 est **desktop uniquement** (cf. cadrage
+  C1). L'usage mobile est reporté en V2.
 
 ### 2.2 Persona secondaire — « Théo, 16 ans, beatmaker amateur »
 
@@ -177,12 +179,21 @@ Permettre à un utilisateur **débutant ou grand public** de :
   `npx serve`). L'ouverture directe en `file://` n'est **pas
   garantie** (CORS sur fetch d'assets audio, restrictions
   `OfflineAudioContext`).
+- **NF-COMPAT-04** : Compatible avec un hébergement **GitHub Pages**
+  (HTTPS obligatoire, MIME types standards `.html`/`.js`/`.wasm`/`.mp3`/`.wav`,
+  pas de service worker en V1, pas de routing serveur — toutes les
+  URLs doivent fonctionner en chemin relatif).
 
 ### 4.3 Ergonomie et accessibilité
 
 - **NF-UX-01** : Parcours « premier son en 60 secondes » atteignable
   sans aide externe.
-- **NF-UX-02** : Interface en français (langue du projet).
+- **NF-UX-02** : **i18n** — toutes les chaînes utilisateur sont
+  externalisées dans un module `i18n/` avec la fonction `t(key)`.
+  V1 livre **le français** ; l'anglais est prêt à activer (fichier
+  `en.json` à remplir, ~1 h de travail). Le passage de l'option 2
+  (infra posée) à l'option 1 (i18n complet FR + EN livré) ne demande
+  pas de refactor du code applicatif.
 - **NF-UX-03** : Tooltips explicites sur tous les contrôles audio non
   triviaux (reverb, ADSR).
 - **NF-UX-04** : **Audio unlock** — aucun son ne doit être émis avant
@@ -304,3 +315,35 @@ Le projet est considéré **livrable** lorsque, en phase 8 (validation) :
 - Plan de développement : `docs/plan-developpement.md`
 - Brainstorming et décisions : `docs/brainstorming.md`
 - Diagrammes : `docs/diagrams/processus_*.{puml,bpmn.xml,png}`
+
+---
+
+## 10. Cadrage V2 (2026-09-06)
+
+Boucle de cadrage supplémentaire, après le DEB V1. Décisions actées :
+
+| # | Question | Décision |
+|---|----------|----------|
+| C1 | Cible mobile en V1 ? | **Non** — V1 desktop uniquement. Mobile/PWA en V2. |
+| C2 | Bibliothèque de boucles | **20 boucles minimum, royalty-free**, sourcées en V1 (licence à documenter dans `LICENSES.md`). |
+| C3 | Distribution | **GitHub Pages** (le bundle est statique, hébergé en `gh-pages` ou branche dédiée). |
+| C4 | Nom de produit | **ALPHA-Band**. Nom de code interne `projet-alpha` (dossier repo inchangé). |
+| C5 | Monétisation | **100 % gratuit**, sans pub, sans tracking, sans compte utilisateur. |
+| C6 | i18n | **Option 2** (infra posée dès V1, FR livré, EN prêt à activer). |
+
+### Conséquences sur le DEB
+
+- **Persona Marie** recentré sur desktop (cf. § 2.1 note V2).
+- **NF-UX-02** étendu pour spécifier l'infra i18n (cf. § 4.3).
+- **NF-COMPAT-04** ajouté en V2 : compatibilité **GitHub Pages** (HTTPS
+  obligatoire, MIME types standards, pas de service worker en V1).
+- **Périmètre V2 (mobile, marketplace, etc.)** mis à jour dans § 7.
+
+### Identité et licence
+
+- **ALPHA-Band** est un nom de produit. Pas de logo, pas de marque
+  déposée en V1. Si le projet mûrit, on traitera l'identité visuelle
+  en V2.
+- La licence du code source reste à trancher (MIT ? Apache 2.0 ?
+  AGPL ?). **Décision prévue en phase 4** (design logiciel), pas
+  bloquante pour le DEB.
