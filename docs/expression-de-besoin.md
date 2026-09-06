@@ -23,11 +23,13 @@ rigoureux (plan en V adapté).
 
 Permettre à un utilisateur **débutant ou grand public** de :
 
-1. **Créer un morceau** multi-pistes (instruments virtuels, boucles,
-   séquenceur) en moins de 10 minutes sans formation préalable.
-2. **Manipuler le son** via des contrôles simples (volume, effets de
-   base : reverb, delay, EQ).
-3. **Exporter** son morceau dans un format audio standard (WAV, MP3).
+1. **Entendre un premier son en moins de 60 secondes** sans formation
+   ni installation (parcours « premier son »).
+2. **Créer un morceau complet** (instruments virtuels, boucles,
+   séquenceur, mixage) en moins de 30 minutes.
+3. **Manipuler le son** via des contrôles simples (volume, reverb,
+   delay, EQ).
+4. **Exporter** son morceau en WAV (16 bits / 44,1 kHz stéréo).
 
 ### 1.3 Cadrage technique acté
 
@@ -130,8 +132,11 @@ Permettre à un utilisateur **débutant ou grand public** de :
 
 - **F-MIX-01** : Fader de volume par piste (0-100).
 - **F-MIX-02** : Bouton mute par piste.
-- **F-MIX-03** : Effet reverb (3 niveaux : sec / petit espace / grande
-  salle) par piste.
+- **F-MIX-03** : Effet reverb par piste, **3 niveaux chiffrés** (RT60) :
+  - `sec` : pas de convolution (bypass)
+  - `petit` : RT60 ≈ 0,4 s, pré-delay 10 ms
+  - `grand` : RT60 ≈ 2,5 s, pré-delay 30 ms
+  Paramètres techniques publics, mesurables par test automatisé.
 - **F-MIX-04** : Panoramique stéréo par piste.
 - **F-MIX-05** : Effet delay (temps en ms, feedback 0-90 %, mix sec/humide)
   par piste, bypassable.
@@ -153,18 +158,25 @@ Permettre à un utilisateur **débutant ou grand public** de :
 ### 4.1 Performance
 
 - **NF-PERF-01** : Démarrage de l'application (DOMContentLoaded → 1er
-  son jouable) < 3 s sur connexion 4G et machine milieu de gamme.
-- **NF-PERF-02** : Lecture d'un projet à 8 pistes + 3 effets sans glitch
-  audible (rendu vérifié humainement en phase 8, pas en CI).
-- **NF-PERF-03** : Export WAV d'un morceau de 3 min < 10 s.
+  son jouable) < 3 s sur la **machine de référence** : Chromium 120+,
+  4 CPU virtuels, 8 Go RAM, throttling CPU 4×, connexion 4G simulée
+  (10 Mbps, 100 ms RTT).
+- **NF-PERF-02** : Lecture d'un projet à 8 pistes + 3 effets
+  (reverb + delay + EQ) sans dropout échantillonné (`renderedBuffer`
+  exempt de NaN/Infinity).
+- **NF-PERF-03** : Export WAV d'un morceau de 3 min < 10 s sur la
+  machine de référence.
 
 ### 4.2 Compatibilité
 
 - **NF-COMPAT-01** : Chrome / Edge / Firefox (2 dernières versions
   majeures).
 - **NF-COMPAT-02** : Pas de support IE / Safari < 15.
-- **NF-COMPAT-03** : Pas de build natif (le bundle doit s'ouvrir via un
-  serveur statique simple ou en `file://` pour le dev).
+- **NF-COMPAT-03** : Pas de build natif. Le bundle doit s'ouvrir via
+  un serveur statique simple (`python3 -m http.server`,
+  `npx serve`). L'ouverture directe en `file://` n'est **pas
+  garantie** (CORS sur fetch d'assets audio, restrictions
+  `OfflineAudioContext`).
 
 ### 4.3 Ergonomie et accessibilité
 
@@ -233,14 +245,33 @@ Permettre à un utilisateur **débutant ou grand public** de :
 
 Le projet est considéré **livrable** lorsque, en phase 8 (validation) :
 
-| ID | Critère | Mesure |
-|----|---------|--------|
-| CS-01 | Parcours CU-01 + CU-02 + CU-03 + CU-05 réussit en < 10 min par un utilisateur novice (test sur 3 personnes) | Observation chronométrée |
-| CS-02 | Aucun bug bloquant sur 1 h d'utilisation continue | Test manuel |
-| CS-03 | Toutes les exigences EF couvertes par au moins un test | Matrice de traçabilité |
-| CS-04 | Le bundle est servable depuis un simple `python3 -m http.server` | Vérification CI |
-| CS-05 | Export WAV + MP3 produit un fichier lisible dans Audacity / VLC | Test manuel |
-| CS-06 | Le code passe la CI (tests + lint + build + smoke navigateur) | CI verte |
+### Critères fonctionnels (EF couvertes par test)
+
+| ID | Critère | Mesure | EF couvertes |
+|----|---------|--------|--------------|
+| CS-01 | Parcours « premier son » réussi en < 60 s (sans aide externe) | Test utilisateur sur 3 novices, 100 % doivent y arriver | F-TRANSPORT-02, F-INSTR-01, NF-UX-04 |
+| CS-02 | Création d'un morceau à 4 pistes (CU-01+02+03) réussie en < 30 min | Test utilisateur sur 3 novices, ≥ 2/3 doivent y arriver | F-INSTR-02, F-SEQ-01, F-SEQ-03 |
+| CS-03 | Export WAV (CU-05) produit un fichier de durée ≥ durée du projet, sample rate 44,1 kHz, 16 bits, stéréo | Vérification automatique via script Node de décodage | F-EXPORT-01, F-EXPORT-03 |
+| CS-04 | Aucun **bug bloquant** (définition : empêche la lecture audio ou l'export, ou crash l'onglet) sur 1 h d'utilisation continue par 2 testeurs | Test manuel chronométré | transversal EF |
+| CS-05 | **100 % des 22 EF** couvertes par au moins un test automatisé OU un plan de test de validation | Matrice de traçabilité `exigences → tests` | EF-01 à EF-22 |
+
+### Critères non fonctionnels (NF mesurées)
+
+| ID | Critère | Mesure | NF couvertes |
+|----|---------|--------|--------------|
+| CS-06 | Startup (DOMContentLoaded → 1er son jouable) < 3 s sur machine de référence (Chromium 120, 4 CPU, 8 Go RAM, throttling CPU 4×) | Lighthouse + script Puppeteer | NF-PERF-01 |
+| CS-07 | Lecture d'un projet à 8 pistes + 3 effets (reverb + delay + EQ) sans dropout échantillonné (test : `OfflineAudioContext.renderedBuffer` sans NaN) | Script Node avec `web-audio-test-api` | NF-PERF-02 |
+| CS-08 | Export WAV d'un morceau de 3 min < 10 s | Script Node de mesure | NF-PERF-03 |
+| CS-09 | Compatibilité : le bundle tourne sur Chrome ≥ 110, Edge ≥ 110, Firefox ≥ 110 | Tests manuels + matrice de compatibilité | NF-COMPAT-01, NF-COMPAT-02 |
+| CS-10 | Persistance : `lastSavedAt` écrit toutes les 10 s en IndexedDB, projet rechargé identique après refresh | Test E2E Puppeteer | NF-ROB-01, NF-ROB-02, NF-ROB-03 |
+| CS-11 | Bundle servable depuis `python3 -m http.server`, `console.error` à 0 après 2 s de chargement | Smoke test CI | NF-COMPAT-03 |
+| CS-12 | `git grep` confirme : aucun `console.log`/`debugger` résiduel, aucun TODO/FIXME dans le code mergé | Check pré-merge | NF-MAINT-01, NF-MAINT-02, NF-MAINT-03 |
+
+### Classification des bugs
+
+- **Bloquant** : empêche lecture/export, crash onglet → **bloque la release**
+- **Majeur** : fonctionnalité inutilisable mais contournable (ex. EQ sans visualisation de courbe) → bloque release
+- **Mineur** : cosmétique, gêne sans bloquer → **ne bloque pas** la release
 
 ---
 
