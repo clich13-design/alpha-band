@@ -1,9 +1,7 @@
-@startbpmn
-title Processus de validation d'une contribution
-
+@startuml
 |Toi|
 start
-:Ouvrir une PR\n(code ou doc);
+:Ouvrir PR\n(code ou doc);
 
 |OpenCode|
 if (Type = code ?) then (oui)
@@ -25,13 +23,13 @@ endif
 
 if (Approuvé ?) then (oui)
   :Squash-merge\nsur main;
-  if (PR de validation\nde phase ?) then (oui)
+  if (PR validation\nde phase ?) then (oui)
     :Tag manuel\n(vX-phase);
   else (non)
   endif
   stop
 else (non)
-  :Itérer\n(branche éphémère mise à jour);
+  :Itérer sur branche\néphémère;
   |OpenCode|
   if (Code) then (oui)
     :Re-review OpenCode;
