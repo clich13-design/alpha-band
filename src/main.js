@@ -13,9 +13,10 @@ import { buildKeyboard, bindComputerKeyboard } from './poc/keyboard.js';
 // Solution jetable : un bundle unique produit par esbuild, qu'on importe
 // comme un module local standard. Pour régénérer :
 //   ./node_modules/.bin/esbuild --bundle --format=esm --target=es2019 \
-//     --outfile=src/vendor/tone-bundle.js \
+//     --outfile=vendor/tone-bundle.js \
 //     'node_modules/tone/build/esm/index.js'
-import * as Tone from './vendor/tone-bundle.js';
+// Import absolu depuis la racine (compatible GitHub Pages + python -m http.server).
+import * as Tone from '/vendor/tone-bundle.js';
 
 const startBtn = document.getElementById('start-btn');
 const startOverlay = document.getElementById('unlock');

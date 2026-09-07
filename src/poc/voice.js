@@ -1,8 +1,10 @@
 // Wrapper mince autour de Tone.js Synth avec enveloppe ADSR.
 // Tone.js: MIT (https://github.com/Tonejs/Tone.js/blob/dev/LICENSE.md)
-// On importe depuis le bundle local (./vendor/tone-bundle.js) plutôt que
+// On importe depuis le bundle local (/vendor/tone-bundle.js) plutôt que
 // depuis node_modules — voir commentaire dans main.js pour le rationale.
-import * as Tone from '../vendor/tone-bundle.js';
+// Le '/' initial résout depuis l'origine (compatible python -m http.server
+// ET GitHub Pages).
+import * as Tone from '/vendor/tone-bundle.js';
 
 /**
  * Crée un synthé polyphonique ADSR jouable à la note.
