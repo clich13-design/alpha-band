@@ -1,0 +1,123 @@
+:root {
+  --bg: #1a1d24;
+  --fg: #e6e8ee;
+  --muted: #8a92a3;
+  --accent: #4cc9f0;
+  --key-white: #f4f4f6;
+  --key-black: #1c1f26;
+  --key-active: #4cc9f0;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+}
+
+header {
+  padding: 1.5rem 2rem 1rem;
+  border-bottom: 1px solid #2a2e38;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+main {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+section {
+  background: #22262f;
+  border: 1px solid #2a2e38;
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+}
+
+button#start-btn {
+  background: var(--accent);
+  color: #0c1015;
+  border: none;
+  padding: 0.7rem 1.4rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button#start-btn:hover { filter: brightness(1.1); }
+
+#keyboard {
+  position: relative;
+  display: flex;
+  height: 140px;
+  user-select: none;
+  margin-top: 0.75rem;
+}
+
+.key {
+  position: relative;
+  flex: 1;
+  border: 1px solid #2a2e38;
+  border-radius: 0 0 5px 5px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 0.4rem;
+  font-size: 0.7rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.key.white {
+  background: var(--key-white);
+  color: #1a1d24;
+}
+
+.key.black {
+  background: var(--key-black);
+  color: var(--fg);
+  flex: 0 0 60%;
+  height: 65%;
+  margin-left: -30%;
+  margin-right: -30%;
+  z-index: 2;
+  border-radius: 0 0 4px 4px;
+}
+
+.key.active {
+  background: var(--key-active);
+  color: #0c1015;
+}
+
+.key.black.active { color: #0c1015; }
+
+code {
+  background: #0c1015;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.85em;
+}
+
+footer {
+  padding: 1rem 2rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  border-top: 1px solid #2a2e38;
+}

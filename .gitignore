@@ -1,4 +1,3 @@
-# Ne pas versionner les artefacts de build et dépendances
 node_modules/
 dist/
 build/

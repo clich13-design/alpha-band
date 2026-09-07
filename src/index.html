@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>ALPHA-Band — POC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>ALPHA-Band</h1>
+    <p class="subtitle">POC — Proof of Concept (synthé ADSR)</p>
+  </header>
+
+  <main>
+    <section id="unlock">
+      <p>Clique sur <strong>Démarrer</strong> pour activer l'audio (les navigateurs bloquent le son avant un geste utilisateur).</p>
+      <button id="start-btn" type="button">Démarrer</button>
+    </section>
+
+    <section id="play" hidden>
+      <p>Joue avec ton clavier : <code>A W S E D F T G Y H U J</code> = do ré mi fa sol la si sur 1,5 octave.</p>
+      <p>Tu peux aussi cliquer sur les touches du clavier ci-dessous.</p>
+      <div id="keyboard" aria-label="Clavier visuel 2 octaves"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Prototype jetable — le code de ce POC n'est pas destiné à être conservé pour la V1.</p>
+  </footer>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
