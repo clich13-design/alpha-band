@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>ALPHA-Band — Maquette séquenceur pas-à-pas</title>
+  <meta name="viewport" content="width=1280">
+  <meta name="description" content="Maquette haute-fidélité de la vue séquenceur pas-à-pas d'ALPHA-Band — interface moderne web, sans audio, pour validation visuelle.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23ffffff' stroke='%23e7e5e4'/%3E%3Ctext x='50%25' y='62%25' text-anchor='middle' font-family='Inter,system-ui,sans-serif' font-size='38' font-weight='700' fill='%235b5bd6'%3Eα%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://rsms.me/">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <link rel="stylesheet" href="sequenceur/sequenceur.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Aller au contenu principal</a>
+
+  <!-- =========================================================
+       HEADER : logo + transport (play/stop, BPM, position, loop)
+       ========================================================= -->
+  <header class="app-header" role="banner">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">α</div>
+      <div class="brand-text">
+        <div class="brand-name">ALPHA-Band</div>
+        <div class="brand-meta">Projet · <span id="project-name">Ma première boucle</span></div>
+      </div>
+    </div>
+
+    <nav class="app-nav" aria-label="Navigation principale">
+      <button class="nav-item is-active" type="button" aria-current="page">Séquenceur</button>
+      <button class="nav-item" type="button" disabled title="Bientôt disponible">Mixer</button>
+      <button class="nav-item" type="button" disabled title="Bientôt disponible">Arrangement</button>
+      <button class="nav-item" type="button" disabled title="Bientôt disponible">Effets</button>
+    </nav>
+
+    <div class="transport" role="group" aria-label="Transport">
+      <button id="btn-rewind" class="t-btn t-btn--ghost" type="button" aria-label="Retour au début" title="Retour au début (Retour)">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 5h2v14H6zM20 5l-10 7 10 7z" fill="currentColor"/></svg>
+      </button>
+
+      <button id="btn-play" class="t-btn t-btn--play" type="button" aria-label="Lecture / Pause" aria-pressed="false">
+        <svg class="icon-play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 5v14l12-7z" fill="currentColor"/></svg>
+        <svg class="icon-pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>
+        <span class="t-btn__label">Play</span>
+      </button>
+
+      <button id="btn-stop" class="t-btn t-btn--ghost" type="button" aria-label="Stop" title="Stop (Échap)">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1" fill="currentColor"/></svg>
+      </button>
+
+      <div class="t-divider" aria-hidden="true"></div>
+
+      <label class="t-bpm" title="Tempo en battements par minute">
+        <span class="t-bpm__label">BPM</span>
+        <input id="input-bpm" type="number" min="40" max="240" value="120" step="1" aria-label="Tempo en BPM">
+      </label>
+
+      <button id="btn-tap" class="t-btn t-btn--ghost" type="button" title="Tapez plusieurs fois pour caler le tempo">
+        Tap
+      </button>
+
+      <div class="t-divider" aria-hidden="true"></div>
+
+      <div class="t-position" aria-live="polite">
+        <span class="t-position__num" id="position-beat">01</span>
+        <span class="t-position__sep">/</span>
+        <span class="t-position__total">16</span>
+      </div>
+
+      <button id="btn-loop" class="t-btn t-btn--ghost" type="button" aria-pressed="true" title="Lecture en boucle">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M7 7h10v3l4-4-4-4v3H5v6h2zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2z" fill="currentColor"/></svg>
+      </button>
+
+      <button id="btn-metronome" class="t-btn t-btn--ghost" type="button" aria-pressed="false" title="Métronome">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 2a1 1 0 011 1v11.59l3.7-3.7a1 1 0 011.4 1.42l-5.3 5.3a1 1 0 01-1.4 0l-5.3-5.3a1 1 0 011.4-1.42L11 14.59V3a1 1 0 011-1zM5 20h14a1 1 0 110 2H5a1 1 0 110-2z" fill="currentColor"/></svg>
+      </button>
+
+      <div class="t-divider" aria-hidden="true"></div>
+
+      <button class="t-btn t-btn--primary" type="button" title="Exporter en WAV (bientôt)">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M12 3v10.59l3.7-3.7 1.4 1.42L12 17.41 6.9 12.3l1.4-1.42L11 13.59V3h1zM5 19h14v2H5z" fill="currentColor"/></svg>
+        <span>Exporter</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- =========================================================
+       MAIN : sidebar bibliothèque + grille séquenceur + mixer
+       ========================================================= -->
+  <main id="main" class="app-main">
+
+    <!-- Sidebar gauche : bibliothèque d'instruments/presets -->
+    <aside class="library" aria-label="Bibliothèque d'instruments">
+      <div class="library__head">
+        <h2 class="library__title">Bibliothèque</h2>
+        <button class="icon-btn" type="button" aria-label="Filtrer la bibliothèque">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M3 5h18v2H3zM6 11h12v2H6zM10 17h4v2h-4z" fill="currentColor"/></svg>
+        </button>
+      </div>
+
+      <nav class="library__cats" aria-label="Catégories">
+        <button class="cat is-active" type="button" data-cat="all">Tout</button>
+        <button class="cat" type="button" data-cat="drums">Batteries</button>
+        <button class="cat" type="button" data-cat="bass">Basses</button>
+        <button class="cat" type="button" data-cat="synth">Synthés</button>
+        <button class="cat" type="button" data-cat="pad">Pads</button>
+        <button class="cat" type="button" data-cat="fx">Effets</button>
+      </nav>
+
+      <div class="library__list" id="library-list" role="listbox" aria-label="Instruments disponibles">
+        <!-- Items injectés par JS -->
+      </div>
+
+      <div class="library__hint">
+        <strong>Astuce :</strong> glisse un instrument dans la grille pour l'ajouter à ton projet.
+      </div>
+    </aside>
+
+    <!-- Zone centrale : grille séquenceur -->
+    <section class="sequencer" aria-label="Grille du séquenceur pas-à-pas">
+      <div class="sequencer__toolbar">
+        <div class="toolbar__left">
+          <div class="steps-control">
+            <span class="lbl">Mesure</span>
+            <select id="select-length" aria-label="Nombre de pas">
+              <option value="8">8 pas</option>
+              <option value="16" selected>16 pas</option>
+              <option value="32">32 pas</option>
+            </select>
+          </div>
+          <div class="steps-control">
+            <span class="lbl">Subdivision</span>
+            <select id="select-subdiv" aria-label="Subdivision">
+              <option value="4">1/4</option>
+              <option value="8" selected>1/8</option>
+              <option value="16">1/16</option>
+            </select>
+          </div>
+        </div>
+        <div class="toolbar__right">
+          <button class="ghost-btn" id="btn-clear" type="button">Vider la grille</button>
+          <button class="ghost-btn" id="btn-random" type="button">Aléatoire</button>
+          <button class="ghost-btn" id="btn-preset" type="button">Preset groove</button>
+        </div>
+      </div>
+
+      <div class="grid-wrapper">
+        <div class="playhead-row" aria-hidden="true">
+          <!-- LEDs générées par JS -->
+        </div>
+        <div class="step-labels" aria-hidden="true">
+          <!-- Numéros 1..16 -->
+        </div>
+
+        <div class="tracks" id="tracks-host" aria-label="Pistes">
+          <!-- Tracks injectées par JS -->
+        </div>
+      </div>
+
+      <div class="bar-counter" aria-hidden="true">
+        <span class="bar-counter__inner" id="bar-progress"></span>
+      </div>
+    </section>
+
+    <!-- Colonne droite : mixer compact -->
+    <aside class="mixer" aria-label="Mini-mixer">
+      <div class="mixer__head">
+        <h2 class="mixer__title">Mixer</h2>
+        <span class="mixer__hint">— 5 pistes</span>
+      </div>
+      <div class="mixer__faders" id="mixer-host" role="group" aria-label="Faders de volume">
+        <!-- Faders injectés par JS -->
+      </div>
+      <div class="mixer__actions">
+        <button class="ghost-btn ghost-btn--full" id="btn-add-track" type="button">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z" fill="currentColor"/></svg>
+          Ajouter une piste
+        </button>
+      </div>
+    </aside>
+  </main>
+
+  <!-- =========================================================
+       FOOTER : aide clavier globale
+       ========================================================= -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="kbd-hints">
+      <span><kbd>Espace</kbd> Play / Pause</span>
+      <span><kbd>←</kbd>/<kbd>→</kbd> Reculer / Avancer d'un pas</span>
+      <span><kbd>M</kbd> Mute piste sélectionnée</span>
+      <span><kbd>S</kbd> Solo piste sélectionnée</span>
+      <span><kbd>↑</kbd>/<kbd>↓</kbd> Changer de piste</span>
+      <span><kbd>T</kbd> Tap tempo</span>
+    </div>
+    <div class="footer-meta">
+      Maquette statique · aucun son n'est joué · <span id="fill-rate">64</span>% rempli
+    </div>
+  </footer>
+
+  <!-- =========================================================
+       TOAST : aide contextuelle
+       ========================================================= -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="sequenceur/sequenceur.js"></script>
+</body>
+</html>
