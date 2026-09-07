@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title>ALPHA-Band — POC</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231a1d24'/%3E%3Ctext x='50%25' y='58%25' text-anchor='middle' font-family='monospace' font-size='38' fill='%234cc9f0'%3Eα%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,10 +19,12 @@
       <button id="start-btn" type="button">Démarrer</button>
     </section>
 
+    <p id="status" class="status">En attente du démarrage…</p>
+
     <section id="play" hidden>
-      <p>Joue avec ton clavier : <code>A W S E D F T G Y H U J</code> = do ré mi fa sol la si sur 1,5 octave.</p>
-      <p>Tu peux aussi cliquer sur les touches du clavier ci-dessous.</p>
-      <div id="keyboard" aria-label="Clavier visuel 2 octaves"></div>
+      <p><strong>Instructions :</strong> clique sur les touches du clavier à la souris <em>ou</em> utilise les touches physiques indiquées sous chaque touche.</p>
+      <p>Mapping basé sur la <strong>position physique</strong> de la touche (compatible QWERTY et AZERTY).</p>
+      <div id="keyboard" aria-label="Clavier visuel 17 notes"></div>
     </section>
   </main>
 

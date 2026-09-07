@@ -77,12 +77,65 @@ button#start-btn:hover { filter: brightness(1.1); }
   border: 1px solid #2a2e38;
   border-radius: 0 0 5px 5px;
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: 0.4rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0 0.3rem;
   font-size: 0.7rem;
   color: var(--muted);
   cursor: pointer;
+}
+
+.note-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.phys-label {
+  font-size: 0.65rem;
+  opacity: 0.6;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  background: rgba(0,0,0,0.1);
+  padding: 0 0.3rem;
+  border-radius: 2px;
+}
+
+.key.white .phys-label {
+  background: rgba(0,0,0,0.05);
+  color: #555;
+}
+
+.key.black .phys-label {
+  background: rgba(255,255,255,0.1);
+  color: #ccc;
+}
+
+.status {
+  margin: 0.75rem 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-style: italic;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid var(--muted);
+}
+
+.status.active {
+  color: var(--accent);
+  font-style: normal;
+  border-left-color: var(--accent);
+  background: rgba(76, 201, 240, 0.08);
+}
+
+.status.error {
+  color: #ff6b6b;
+  font-style: normal;
+  border-left-color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: 0.85rem;
+  word-break: break-word;
 }
 
 .key.white {

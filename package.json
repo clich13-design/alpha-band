@@ -8,7 +8,9 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "bundle:tone": "esbuild --bundle --format=esm --target=es2019 --outfile=src/vendor/tone-bundle.js 'node_modules/tone/build/esm/index.js'",
+    "serve": "python3 -m http.server 8767 --bind 127.0.0.1"
   },
   "repository": {
     "type": "git",
@@ -24,5 +26,8 @@
   "type": "module",
   "dependencies": {
     "tone": "^15.0.4"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
   }
 }

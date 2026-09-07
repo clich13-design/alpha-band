@@ -1,6 +1,8 @@
 // Wrapper mince autour de Tone.js Synth avec enveloppe ADSR.
 // Tone.js: MIT (https://github.com/Tonejs/Tone.js/blob/dev/LICENSE.md)
-import * as Tone from '../node_modules/tone/build/esm/index.js';
+// On importe depuis le bundle local (./vendor/tone-bundle.js) plutôt que
+// depuis node_modules — voir commentaire dans main.js pour le rationale.
+import * as Tone from '../vendor/tone-bundle.js';
 
 /**
  * Crée un synthé polyphonique ADSR jouable à la note.
@@ -27,10 +29,10 @@ export function createVoice(opts = {}) {
   synth.volume.value = -8; // headroom, évite la saturation
 
   return {
-    noteOn(note) {
+    triggerAttack(note) {
       synth.triggerAttack(note);
     },
-    noteOff(note) {
+    triggerRelease(note) {
       synth.triggerRelease(note);
     },
     setADSR({ attack, decay, sustain, release }) {

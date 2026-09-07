@@ -10,10 +10,18 @@
 ## Lancer en local
 
 ```bash
-cd src/
-python3 -m http.server 8000
-# puis ouvrir http://localhost:8000/ dans un navigateur moderne
+# Depuis la racine du repo :
+npm install              # installe tone + esbuild (devDep)
+npm run bundle:tone      # régénère src/vendor/tone-bundle.js (~870 KB)
+npm run serve            # python3 -m http.server 8767 --bind 127.0.0.1
+# puis ouvrir http://127.0.0.1:8767/src/ dans un navigateur moderne
 ```
+
+> Pourquoi le bundle Tone ? Tone.js v15 dépend de `standardized-audio-context`,
+> `automation-events` et `tslib` avec des imports sans extension `.js` et des
+> "bare specifiers" (`from "tslib"`). Le navigateur ne sait pas les résoudre en
+> ESM natif — on bundle donc tout dans un seul fichier avec esbuild. C'est la
+> solution la plus simple pour un POC jetable.
 
 Cliquer sur **Démarrer** (pour activer l'audio), puis jouer avec :
 - Le clavier visuel à la souris
@@ -26,19 +34,21 @@ Cliquer sur **Démarrer** (pour activer l'audio), puis jouer avec :
 - Pas d'effets (reverb, delay, EQ)
 - Pas de séquenceur
 - 1 seul instrument (synthé ADSR)
-- Pas de tests, pas de CI, pas de build
+- Pas de tests, pas de CI, pas de build (à part le bundle Tone)
 - Strings en dur (pas d'i18n — sera posé en V1)
 
 ## Architecture jetable
 
 ```
 src/
-├── index.html        Page statique
-├── style.css         Styles minimaux
-├── main.js           Bootstrap (audio unlock + clavier)
+├── index.html             Page statique
+├── style.css              Styles minimaux
+├── main.js                Bootstrap (audio unlock + clavier)
+├── vendor/
+│   └── tone-bundle.js     Tone.js + deps bundlé par esbuild (~870 KB)
 └── poc/
-    ├── voice.js      Wrapper Tone.js Synth (ADSR)
-    └── keyboard.js   Clavier visuel + QWERTY
+    ├── voice.js           Wrapper Tone.js Synth (ADSR)
+    └── keyboard.js        Clavier visuel + QWERTY
 ```
 
 ## Ce que ce POC ne teste PAS
