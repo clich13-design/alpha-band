@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ALPHA-Band DAW - 16-Step Drum Sequencer</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Public+Sans:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {},
+          borderRadius: {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          spacing: {},
+          fontFamily: {
+            "headline": ["Inter", "sans-serif"],
+            "display": ["Inter", "sans-serif"],
+            "body": ["Inter", "sans-serif"],
+            "label": ["Public Sans", "sans-serif"],
+            "mono": ["JetBrains Mono", "monospace"]
+          },
+          fontSize: {}
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    /* Hide scrollbars for slick rack experience */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080e1a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #111d3a;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #1a2a4a;
+    }
+    .custom-range::-webkit-slider-thumb {
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      background: #60a5fa;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(96,165,250,0.6);
+    }
+    .custom-range::-webkit-slider-runnable-track {
+      background: #111d3a;
+      height: 4px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body class="bg-[#080e1a] text-white font-body selection:bg-[#60a5fa]/30 min-h-screen overflow-x-hidden antialiased flex flex-col">
+<!-- TOP APP BAR (Shared Component: TopNavBar with DAW transport anchors) -->
+<header class="fixed top-0 left-0 w-full h-[72px] z-50 flex items-center justify-between px-4 bg-[#0c1428] shadow-sm select-none">
+<!-- Brand & Global DAW Menus -->
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-[4px] bg-gradient-to-br from-[#60a5fa] to-[#f472b6] flex items-center justify-center shadow-lg shadow-[#60a5fa]/20">
+<span class="material-symbols-outlined text-[#080e1a] text-lg font-bold" style="font-variation-settings: 'FILL' 1;">graphic_eq</span>
+</div>
+<span class="font-display font-bold text-base tracking-tight text-white">ALPHA-Band</span>
+</div>
+<!-- Navigation Links from JSON -->
+<nav class="hidden lg:flex items-center gap-1 font-label text-xs tracking-wider uppercase">
+<a class="px-2.5 py-1.5 rounded-[4px] text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors duration-150 active:scale-95" href="#">File</a>
+<a class="px-2.5 py-1.5 rounded-[4px] text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors duration-150 active:scale-95" href="#">Edit</a>
+<a class="px-2.5 py-1.5 rounded-[4px] text-[#60a5fa] font-medium bg-[#111d3a] transition-colors duration-150" href="#">Track</a>
+<a class="px-2.5 py-1.5 rounded-[4px] text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors duration-150 active:scale-95" href="#">Mixer</a>
+<a class="px-2.5 py-1.5 rounded-[4px] text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors duration-150 active:scale-95" href="#">Window</a>
+</nav>
+</div>
+<!-- Center Transport Bar & Primary Controls -->
+<div class="flex items-center gap-3 bg-[#111d3a] px-3 py-1.5 rounded-[4px] shadow-sm">
+<!-- Play/Stop Controls -->
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded-[4px] flex items-center justify-center bg-[#0c1428] text-[#94a3b8] hover:text-[#f87171] hover:bg-[#1a2a4a] transition-all duration-150 active:scale-95" id="btn-stop" title="Stop">
+<span class="material-symbols-outlined text-base">stop</span>
+</button>
+<button class="w-9 h-8 rounded-[4px] flex items-center justify-center bg-[#34d399]/20 text-[#34d399] shadow-sm shadow-[#34d399]/30 hover:bg-[#34d399]/30 transition-all duration-150 active:scale-95" id="btn-play" title="Play (Space)">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<button class="w-8 h-8 rounded-[4px] flex items-center justify-center bg-[#0c1428] text-[#f472b6] hover:bg-[#f472b6]/20 transition-all duration-150 active:scale-95" id="btn-record" title="Record">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">fiber_manual_record</span>
+</button>
+<button class="w-8 h-8 rounded-[4px] flex items-center justify-center bg-[#60a5fa]/20 text-[#60a5fa] hover:bg-[#60a5fa]/30 transition-all duration-150 active:scale-95 ml-1" id="btn-loop" title="Loop Toggle">
+<span class="material-symbols-outlined text-base">repeat</span>
+</button>
+</div>
+<div class="w-[1px] h-5 bg-[#0c1428] mx-1"></div>
+<!-- BPM Fine Control -->
+<div class="flex items-center gap-1.5 font-mono">
+<span class="font-label text-[10px] tracking-widest text-[#94a3b8] uppercase">TEMPO</span>
+<div class="flex items-center bg-[#0c1428] px-2 py-1 rounded-[4px] gap-1">
+<span class="text-sm font-semibold text-white tracking-wide" id="bpm-val">124.00</span>
+<span class="text-[10px] text-[#60a5fa]">BPM</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<button class="w-4 h-3 rounded-[2px] bg-[#0c1428] hover:bg-[#1a2a4a] text-[#94a3b8] hover:text-white flex items-center justify-center text-[10px] active:scale-95 leading-none" id="bpm-inc">▲</button>
+<button class="w-4 h-3 rounded-[2px] bg-[#0c1428] hover:bg-[#1a2a4a] text-[#94a3b8] hover:text-white flex items-center justify-center text-[10px] active:scale-95 leading-none" id="bpm-dec">▼</button>
+</div>
+<button class="px-2 py-1 rounded-[4px] text-[10px] font-label uppercase tracking-wider bg-[#0c1428] text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors">TAP</button>
+</div>
+<div class="w-[1px] h-5 bg-[#0c1428] mx-1"></div>
+<!-- Position Display -->
+<div class="flex items-center gap-1.5 bg-[#0c1428] px-2.5 py-1 rounded-[4px] font-mono">
+<span class="font-label text-[10px] text-[#64748b]">BAR</span>
+<span class="text-xs font-semibold text-[#60a5fa] tracking-wider" id="transport-counter">01.02.01</span>
+</div>
+<div class="w-[1px] h-5 bg-[#0c1428] mx-1"></div>
+<!-- Pattern Selector [A] [B] [C] [D] -->
+<div class="flex items-center gap-1 bg-[#0c1428] p-1 rounded-[4px] font-mono text-xs">
+<button class="pattern-tab px-2.5 py-1 rounded-[4px] bg-[#60a5fa] text-[#080e1a] font-bold shadow-sm transition-all">A</button>
+<button class="pattern-tab px-2.5 py-1 rounded-[4px] text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-all">B</button>
+<button class="pattern-tab px-2.5 py-1 rounded-[4px] text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-all">C</button>
+<button class="pattern-tab px-2.5 py-1 rounded-[4px] text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-all">D</button>
+</div>
+</div>
+<!-- Trailing Actions from JSON -->
+<div class="flex items-center gap-2">
+<div class="flex items-center gap-1 text-[#94a3b8]">
+<button class="w-8 h-8 rounded-[4px] flex items-center justify-center hover:bg-[#1a2a4a] hover:text-white transition-colors duration-150 active:scale-95" title="Notifications">
+<span class="material-symbols-outlined text-lg">notifications</span>
+</button>
+<button class="w-8 h-8 rounded-[4px] flex items-center justify-center hover:bg-[#1a2a4a] hover:text-white transition-colors duration-150 active:scale-95" title="Help">
+<span class="material-symbols-outlined text-lg">help</span>
+</button>
+<button class="w-8 h-8 rounded-[4px] flex items-center justify-center hover:bg-[#1a2a4a] hover:text-white transition-colors duration-150 active:scale-95" title="Settings">
+<span class="material-symbols-outlined text-lg">settings</span>
+</button>
+</div>
+<div class="w-[1px] h-6 bg-[#111d3a] mx-1"></div>
+<button class="px-3 py-1.5 rounded-[4px] bg-[#111d3a] text-white text-xs font-medium hover:bg-[#1a2a4a] transition-colors duration-150 active:scale-95">
+        Save
+      </button>
+<button class="px-3.5 py-1.5 rounded-[4px] bg-[#60a5fa] text-[#080e1a] text-xs font-semibold hover:bg-[#93c5fd] shadow-md shadow-[#60a5fa]/20 transition-all duration-150 active:scale-95">
+        Export
+      </button>
+</div>
+</header>
+<!-- SIDEBAR (Shared Component: SideNavBar) -->
+<aside class="fixed left-0 top-[72px] h-[calc(100vh-72px)] w-[280px] z-40 flex flex-col justify-between p-3 bg-[#0c1428] shadow-md select-none hidden md:flex">
+<!-- Header & Categories -->
+<div class="flex flex-col gap-3">
+<!-- Library Header -->
+<div class="flex items-center justify-between px-2 pt-1 pb-2 border-none">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-[4px] bg-[#111d3a] flex items-center justify-center text-[#60a5fa]">
+<span class="material-symbols-outlined text-lg">folder_open</span>
+</div>
+<div>
+<h2 class="font-display font-semibold text-sm text-white">Library</h2>
+<p class="font-body text-xs text-[#94a3b8]">Browser</p>
+</div>
+</div>
+<button class="px-2 py-1 rounded-[4px] bg-[#111d3a] text-[10px] font-medium text-[#60a5fa] hover:bg-[#1a2a4a] transition-colors">
+          KIT 08
+        </button>
+</div>
+<!-- CTA Button -->
+<button class="w-full py-2 px-3 rounded-[4px] bg-[#111d3a] hover:bg-[#1a2a4a] text-[#60a5fa] hover:text-white text-xs font-medium flex items-center justify-center gap-2 transition-colors duration-150 active:scale-[0.98]">
+<span class="material-symbols-outlined text-base">file_upload</span>
+<span>Import Sample</span>
+</button>
+<!-- Side Nav Tab Links: Drums is Active according to Intent -->
+<nav class="flex flex-col gap-1 mt-1 font-body text-xs">
+<!-- 1. Drums (Active Tab) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-[4px] bg-[#111d3a] text-[#60a5fa] font-medium transition-colors" href="#">
+<span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">album</span>
+<span>Drums</span>
+<span class="ml-auto font-mono text-[10px] text-[#94a3b8] bg-[#0c1428] px-1.5 py-0.5 rounded-[2px]">16 Samples</span>
+</a>
+<!-- 2. Bass -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-[4px] text-[#94a3b8] hover:bg-[#1a2a4a] hover:text-white transition-colors duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-base">graphic_eq</span>
+<span>Bass</span>
+</a>
+<!-- 3. Synth -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-[4px] text-[#94a3b8] hover:bg-[#1a2a4a] hover:text-white transition-colors duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-base">piano</span>
+<span>Synth</span>
+</a>
+<!-- 4. FX -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-[4px] text-[#94a3b8] hover:bg-[#1a2a4a] hover:text-white transition-colors duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-base">auto_awesome</span>
+<span>FX</span>
+</a>
+<!-- 5. Loops -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-[4px] text-[#94a3b8] hover:bg-[#1a2a4a] hover:text-white transition-colors duration-150 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-base">loop</span>
+<span>Loops</span>
+</a>
+</nav>
+<!-- Kit Preset Preview Mini Card -->
+<div class="mt-4 p-2.5 rounded-[4px] bg-[#111d3a]/60">
+<div class="flex items-center justify-between text-[11px] font-mono text-[#94a3b8] mb-1.5">
+<span class="text-white font-medium">Selected Kit</span>
+<span class="text-[#34d399]">Ready</span>
+</div>
+<p class="text-xs text-white font-display font-medium">ALPHA Analog 909 Vintage</p>
+<div class="mt-2 flex items-center justify-between text-[10px] font-mono text-[#64748b]">
+<span>44.1kHz • 24-bit</span>
+<span class="text-[#60a5fa] hover:underline cursor-pointer">Hot Swap</span>
+</div>
+</div>
+</div>
+<!-- Sidebar Footer Tabs from JSON -->
+<div class="flex flex-col gap-1 pt-3 border-none">
+<a class="flex items-center gap-3 px-3 py-2 rounded-[4px] text-[#94a3b8] hover:bg-[#1a2a4a] hover:text-white transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-base">extension</span>
+<span class="text-xs">Plugins</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-[4px] text-[#94a3b8] hover:bg-[#1a2a4a] hover:text-white transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-base">star</span>
+<span class="text-xs">Favorites</span>
+</a>
+</div>
+</aside>
+<!-- MAIN CANVAS: SEQUENCER WORKSPACE -->
+<main class="mt-[72px] md:ml-[280px] flex-1 flex flex-col p-4 lg:p-6 bg-[#080e1a] overflow-x-auto min-w-[1020px]">
+<!-- Sequencer Workspace Header / Status Bar -->
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#60a5fa] animate-pulse"></span>
+<h1 class="font-display text-lg font-semibold text-white tracking-tight">Drum Sequencer • Pattern A</h1>
+</div>
+<span class="px-2 py-0.5 rounded-[4px] bg-[#111d3a] text-[#60a5fa] font-mono text-xs">16 Steps / 4/4 Time</span>
+</div>
+<div class="flex items-center gap-2 text-xs font-mono">
+<span class="text-[#64748b]">Active Voices:</span>
+<span class="text-white bg-[#0c1428] px-2 py-0.5 rounded-[4px]">8 / 8</span>
+<button class="ml-2 px-2.5 py-1 rounded-[4px] bg-[#111d3a] hover:bg-[#1a2a4a] text-[#94a3b8] hover:text-white transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">tune</span>
+          Mixer View
+        </button>
+</div>
+</div>
+<!-- SEQUENCER RACK CONTAINER -->
+<div class="bg-[#0c1428] rounded-[4px] p-4 shadow-xl flex flex-col gap-2 relative">
+<!-- Step Column Indicators Header (16 Steps in 4 Beats) -->
+<div class="flex items-center">
+<!-- Offset for Track Controls Column (w-64 = 256px) -->
+<div class="w-64 flex-shrink-0 pr-4 flex items-center justify-between text-[#64748b] font-label text-[10px] tracking-wider uppercase">
+<span>TRACK / SOUND</span>
+<span>PITCH • VOL</span>
+</div>
+<!-- 16 Steps Header Bars -->
+<div class="flex items-center gap-1.5 select-none font-mono text-[11px]">
+<!-- Beat 1 (Steps 1-4) -->
+<div class="flex items-center gap-1.5 p-1 rounded-[4px] bg-[#111d3a]/40">
+<div class="w-[40px] h-6 flex items-center justify-center text-[#60a5fa] font-semibold bg-[#111d3a] rounded-[4px]">1</div>
+<div class="w-[40px] h-6 flex items-center justify-center text-[#64748b]">2</div>
+<div class="w-[40px] h-6 flex items-center justify-center text-[#64748b]">3</div>
+<div class="w-[40px] h-6 flex items-center justify-center text-[#64748b]">4</div>
+</div>
+<!-- Beat 2 (Steps 5-8 - with Step 5 playhead highlighted) -->
+<div class="flex items-center gap-1.5 p-1 rounded-[4px] bg-[#111d3a]/20">
+<div class="w-[40px] h-6 flex items-center justify-center text-[#34d399] font-semibold bg-[#111d3a] rounded-[4px] relative">
+              5
+              <!-- Playhead indicator badge -->
+<span class="absolute -top-1 w-1.5 h-1.5 rounded-full bg-[#34d399] animate-ping"></span>
+</div>
+<div class="w-[40px] h-6 flex items-center justify-center text-[#64748b]">6</div>
+<div class="w-[40px] h-6 flex items-center justify-center text-[#64748b]">7</div>
+<div class="w-[40px] h-6 flex items-center justify-center text-[#64748b]">8</div>
+</div>
+<!-- Beat 3 (Steps 9-12) -->
+<div class="flex items-center gap-1.5 p-1 rounded-[4px] bg-[#111d3a]/40">
+<div class="w-[40px] h-6 flex items-center justify-center text-[#60a5fa] font-semibold bg-[#111d3a] rounded-[4px]">9</div>
+<div class="w-[40px] h-6 flex items-center justify-center text-[#64748b]">10</div>
+<div class="w-[40px] h-6 flex items-center justify-center text-[#64748b]">11</div>
+<div class="w-[40px] h-6 flex items-center justify-center text-[#64748b]">12</div>
+</div>
+<!-- Beat 4 (Steps 13-16) -->
+<div class="flex items-center gap-1.5 p-1 rounded-[4px] bg-[#111d3a]/20">
+<div class="w-[40px] h-6 flex items-center justify-center text-[#60a5fa] font-semibold bg-[#111d3a] rounded-[4px]">13</div>
+<div class="w-[40px] h-6 flex items-center justify-center text-[#64748b]">14</div>
+<div class="w-[40px] h-6 flex items-center justify-center text-[#64748b]">15</div>
+<div class="w-[40px] h-6 flex items-center justify-center text-[#64748b]">16</div>
+</div>
+</div>
+</div>
+<!-- PLAYHEAD VERTICAL BEAM OVERLAY (Simulated on Step 5) -->
+<div class="absolute top-[52px] bottom-4 pointer-events-none z-10 transition-all duration-75" style="left: calc(256px + 16px + 4px + (40px + 6px) * 4 + 7px); width: 40px;">
+<div class="w-full h-full bg-[#34d399]/5 rounded-[4px] border border-dashed border-[#34d399]/20 shadow-[0_0_15px_rgba(52,211,153,0.15)]"></div>
+</div>
+<!-- SEQUENCER 8 TRACK ROWS -->
+<div class="flex flex-col gap-2" id="tracks-container">
+<!-- 1. Kick Row -->
+<div class="flex items-center group">
+<!-- Track Header -->
+<div class="w-64 flex-shrink-0 pr-4 flex items-center justify-between bg-[#111d3a] px-3 py-2 rounded-[4px] h-[48px]">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#f472b6] shadow-sm shadow-[#f472b6]/50"></span>
+<span class="font-display font-semibold text-sm text-white">1. Kick</span>
+</div>
+<div class="flex items-center gap-1.5">
+<!-- Mute / Solo -->
+<button class="track-btn-m w-5 h-5 rounded-[4px] bg-[#0c1428] text-[#94a3b8] hover:text-white font-mono text-[10px] font-bold flex items-center justify-center transition-colors">M</button>
+<button class="track-btn-s w-5 h-5 rounded-[4px] bg-[#0c1428] text-[#fbbf24] hover:bg-[#fbbf24]/20 font-mono text-[10px] font-bold flex items-center justify-center transition-colors">S</button>
+<!-- Micro Mini Sliders / Indicators -->
+<div class="w-12 h-1.5 bg-[#0c1428] rounded-[2px] overflow-hidden ml-1">
+<div class="w-[85%] h-full bg-[#60a5fa] rounded-[2px]"></div>
+</div>
+</div>
+</div>
+<!-- 16 Steps (Kick on 1, 5, 9, 13 + ghost note on 11) -->
+<div class="flex items-center gap-1.5 pl-1.5">
+<!-- Beat 1 -->
+<div class="flex items-center gap-1.5">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] text-[#080e1a] shadow-md shadow-[#60a5fa]/30 active:scale-95 transition-all flex items-center justify-center"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all flex items-center justify-center"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all flex items-center justify-center"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all flex items-center justify-center"></button>
+</div>
+<!-- Beat 2 -->
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] ring-2 ring-[#34d399]/70 shadow-md shadow-[#60a5fa]/40 transition-all flex items-center justify-center"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all flex items-center justify-center"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all flex items-center justify-center"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all flex items-center justify-center"></button>
+</div>
+<!-- Beat 3 -->
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] shadow-md shadow-[#60a5fa]/30 transition-all flex items-center justify-center"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all flex items-center justify-center"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa]/60 transition-all flex items-center justify-center" title="Ghost note"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all flex items-center justify-center"></button>
+</div>
+<!-- Beat 4 -->
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] shadow-md shadow-[#60a5fa]/30 transition-all flex items-center justify-center"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all flex items-center justify-center"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all flex items-center justify-center"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all flex items-center justify-center"></button>
+</div>
+</div>
+</div>
+<!-- 2. Snare Row -->
+<div class="flex items-center group">
+<div class="w-64 flex-shrink-0 pr-4 flex items-center justify-between bg-[#111d3a] px-3 py-2 rounded-[4px] h-[48px]">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#60a5fa] shadow-sm shadow-[#60a5fa]/50"></span>
+<span class="font-display font-semibold text-sm text-white">2. Snare</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="track-btn-m w-5 h-5 rounded-[4px] bg-[#0c1428] text-[#94a3b8] hover:text-white font-mono text-[10px] font-bold flex items-center justify-center transition-colors">M</button>
+<button class="track-btn-s w-5 h-5 rounded-[4px] bg-[#0c1428] text-[#94a3b8] hover:text-[#fbbf24] font-mono text-[10px] font-bold flex items-center justify-center transition-colors">S</button>
+<div class="w-12 h-1.5 bg-[#0c1428] rounded-[2px] overflow-hidden ml-1">
+<div class="w-[75%] h-full bg-[#60a5fa] rounded-[2px]"></div>
+</div>
+</div>
+</div>
+<!-- 16 Steps (Snare on 5 and 13) -->
+<div class="flex items-center gap-1.5 pl-1.5">
+<!-- Beat 1 -->
+<div class="flex items-center gap-1.5">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<!-- Beat 2 -->
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] ring-2 ring-[#34d399]/70 shadow-md shadow-[#60a5fa]/30 transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<!-- Beat 3 -->
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<!-- Beat 4 -->
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] shadow-md shadow-[#60a5fa]/30 transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+</div>
+</div>
+<!-- 3. Closed Hi-Hat (CHH) Row -->
+<div class="flex items-center group">
+<div class="w-64 flex-shrink-0 pr-4 flex items-center justify-between bg-[#111d3a] px-3 py-2 rounded-[4px] h-[48px]">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#34d399] shadow-sm shadow-[#34d399]/50"></span>
+<span class="font-display font-semibold text-sm text-white">3. CHH</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="track-btn-m w-5 h-5 rounded-[4px] bg-[#0c1428] text-[#94a3b8] hover:text-white font-mono text-[10px] font-bold flex items-center justify-center transition-colors">M</button>
+<button class="track-btn-s w-5 h-5 rounded-[4px] bg-[#0c1428] text-[#94a3b8] hover:text-[#fbbf24] font-mono text-[10px] font-bold flex items-center justify-center transition-colors">S</button>
+<div class="w-12 h-1.5 bg-[#0c1428] rounded-[2px] overflow-hidden ml-1">
+<div class="w-[60%] h-full bg-[#60a5fa] rounded-[2px]"></div>
+</div>
+</div>
+</div>
+<!-- 16 Steps (Consistent 8th/16th groove pattern) -->
+<div class="flex items-center gap-1.5 pl-1.5">
+<!-- Beat 1 -->
+<div class="flex items-center gap-1.5">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa]/70 transition-all"></button>
+</div>
+<!-- Beat 2 -->
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] ring-2 ring-[#34d399]/70 transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<!-- Beat 3 -->
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa]/70 transition-all"></button>
+</div>
+<!-- Beat 4 -->
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+</div>
+</div>
+</div>
+<!-- 4. Open Hi-Hat (OHH) Row -->
+<div class="flex items-center group">
+<div class="w-64 flex-shrink-0 pr-4 flex items-center justify-between bg-[#111d3a] px-3 py-2 rounded-[4px] h-[48px]">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#fbbf24] shadow-sm shadow-[#fbbf24]/50"></span>
+<span class="font-display font-semibold text-sm text-white">4. OHH</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="track-btn-m w-5 h-5 rounded-[4px] bg-[#0c1428] text-[#94a3b8] hover:text-white font-mono text-[10px] font-bold flex items-center justify-center transition-colors">M</button>
+<button class="track-btn-s w-5 h-5 rounded-[4px] bg-[#0c1428] text-[#94a3b8] hover:text-[#fbbf24] font-mono text-[10px] font-bold flex items-center justify-center transition-colors">S</button>
+<div class="w-12 h-1.5 bg-[#0c1428] rounded-[2px] overflow-hidden ml-1">
+<div class="w-[50%] h-full bg-[#60a5fa] rounded-[2px]"></div>
+</div>
+</div>
+</div>
+<!-- 16 Steps (OHH off-beats: 3, 7, 11, 15) -->
+<div class="flex items-center gap-1.5 pl-1.5">
+<!-- Beat 1 -->
+<div class="flex items-center gap-1.5">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<!-- Beat 2 -->
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<!-- Beat 3 -->
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<!-- Beat 4 -->
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+</div>
+</div>
+<!-- 5. Clap Row -->
+<div class="flex items-center group">
+<div class="w-64 flex-shrink-0 pr-4 flex items-center justify-between bg-[#111d3a] px-3 py-2 rounded-[4px] h-[48px]">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#f472b6] shadow-sm shadow-[#f472b6]/50"></span>
+<span class="font-display font-semibold text-sm text-white">5. Clap</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="track-btn-m w-5 h-5 rounded-[4px] bg-[#0c1428] text-[#94a3b8] hover:text-white font-mono text-[10px] font-bold flex items-center justify-center transition-colors">M</button>
+<button class="track-btn-s w-5 h-5 rounded-[4px] bg-[#0c1428] text-[#94a3b8] hover:text-[#fbbf24] font-mono text-[10px] font-bold flex items-center justify-center transition-colors">S</button>
+<div class="w-12 h-1.5 bg-[#0c1428] rounded-[2px] overflow-hidden ml-1">
+<div class="w-[70%] h-full bg-[#60a5fa] rounded-[2px]"></div>
+</div>
+</div>
+</div>
+<!-- 16 Steps (Clap accents layered on step 5, 13) -->
+<div class="flex items-center gap-1.5 pl-1.5">
+<div class="flex items-center gap-1.5">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] ring-2 ring-[#34d399]/70 transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+</div>
+</div>
+<!-- 6. Tom Row -->
+<div class="flex items-center group">
+<div class="w-64 flex-shrink-0 pr-4 flex items-center justify-between bg-[#111d3a] px-3 py-2 rounded-[4px] h-[48px]">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#60a5fa] shadow-sm shadow-[#60a5fa]/50"></span>
+<span class="font-display font-semibold text-sm text-white">6. Tom</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="track-btn-m w-5 h-5 rounded-[4px] bg-[#0c1428] text-[#94a3b8] hover:text-white font-mono text-[10px] font-bold flex items-center justify-center transition-colors">M</button>
+<button class="track-btn-s w-5 h-5 rounded-[4px] bg-[#0c1428] text-[#94a3b8] hover:text-[#fbbf24] font-mono text-[10px] font-bold flex items-center justify-center transition-colors">S</button>
+<div class="w-12 h-1.5 bg-[#0c1428] rounded-[2px] overflow-hidden ml-1">
+<div class="w-[65%] h-full bg-[#60a5fa] rounded-[2px]"></div>
+</div>
+</div>
+</div>
+<!-- 16 Steps (Tom fills: 14, 15, 16) -->
+<div class="flex items-center gap-1.5 pl-1.5">
+<div class="flex items-center gap-1.5">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+</div>
+</div>
+</div>
+<!-- 7. Rim Row -->
+<div class="flex items-center group">
+<div class="w-64 flex-shrink-0 pr-4 flex items-center justify-between bg-[#111d3a] px-3 py-2 rounded-[4px] h-[48px]">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#34d399] shadow-sm shadow-[#34d399]/50"></span>
+<span class="font-display font-semibold text-sm text-white">7. Rim</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="track-btn-m w-5 h-5 rounded-[4px] bg-[#0c1428] text-[#94a3b8] hover:text-white font-mono text-[10px] font-bold flex items-center justify-center transition-colors">M</button>
+<button class="track-btn-s w-5 h-5 rounded-[4px] bg-[#0c1428] text-[#94a3b8] hover:text-[#fbbf24] font-mono text-[10px] font-bold flex items-center justify-center transition-colors">S</button>
+<div class="w-12 h-1.5 bg-[#0c1428] rounded-[2px] overflow-hidden ml-1">
+<div class="w-[40%] h-full bg-[#60a5fa] rounded-[2px]"></div>
+</div>
+</div>
+</div>
+<!-- 16 Steps (Rim subtle syncopation: 4, 10, 12) -->
+<div class="flex items-center gap-1.5 pl-1.5">
+<div class="flex items-center gap-1.5">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+</div>
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] transition-all"></button>
+</div>
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+</div>
+</div>
+<!-- 8. Crash Row -->
+<div class="flex items-center group">
+<div class="w-64 flex-shrink-0 pr-4 flex items-center justify-between bg-[#111d3a] px-3 py-2 rounded-[4px] h-[48px]">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#fbbf24] shadow-sm shadow-[#fbbf24]/50"></span>
+<span class="font-display font-semibold text-sm text-white">8. Crash</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="track-btn-m w-5 h-5 rounded-[4px] bg-[#0c1428] text-[#94a3b8] hover:text-white font-mono text-[10px] font-bold flex items-center justify-center transition-colors">M</button>
+<button class="track-btn-s w-5 h-5 rounded-[4px] bg-[#0c1428] text-[#94a3b8] hover:text-[#fbbf24] font-mono text-[10px] font-bold flex items-center justify-center transition-colors">S</button>
+<div class="w-12 h-1.5 bg-[#0c1428] rounded-[2px] overflow-hidden ml-1">
+<div class="w-[55%] h-full bg-[#60a5fa] rounded-[2px]"></div>
+</div>
+</div>
+</div>
+<!-- 16 Steps (Downbeat Crash on Step 1) -->
+<div class="flex items-center gap-1.5 pl-1.5">
+<div class="flex items-center gap-1.5">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#60a5fa] shadow-md shadow-[#60a5fa]/30 transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+<div class="flex items-center gap-1.5 ml-1">
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+<button class="step-pad w-[40px] h-[40px] rounded-[4px] bg-[#0c1428] hover:bg-[#111d3a] transition-all"></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- BOTTOM CONTROL TOOLBAR (Sequencer Parameters & Humanization) -->
+<div class="mt-4 bg-[#0c1428] rounded-[4px] p-3 shadow-md flex items-center justify-between flex-wrap gap-4">
+<!-- Left: Length & Quantize -->
+<div class="flex items-center gap-4">
+<!-- Length Toggle -->
+<div class="flex items-center gap-2">
+<span class="font-label text-[10px] uppercase tracking-wider text-[#94a3b8]">LENGTH</span>
+<div class="flex items-center bg-[#111d3a] p-0.5 rounded-[4px] font-mono text-xs">
+<button class="px-3 py-1 rounded-[4px] bg-[#60a5fa] text-[#080e1a] font-bold shadow-sm">16</button>
+<button class="px-3 py-1 rounded-[4px] text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors">32</button>
+</div>
+</div>
+<div class="w-[1px] h-6 bg-[#111d3a]"></div>
+<!-- Swing Parameter Control -->
+<div class="flex items-center gap-3">
+<span class="font-label text-[10px] uppercase tracking-wider text-[#94a3b8]">SWING</span>
+<input class="custom-range w-24 accent-[#60a5fa]" id="swing-slider" max="75" min="50" type="range" value="54"/>
+<span class="font-mono text-xs text-[#60a5fa] bg-[#111d3a] px-2 py-0.5 rounded-[4px]" id="swing-val">54%</span>
+</div>
+<div class="w-[1px] h-6 bg-[#111d3a]"></div>
+<!-- Humanize / Velocity Randomizer -->
+<div class="flex items-center gap-2">
+<span class="font-label text-[10px] uppercase tracking-wider text-[#94a3b8]">HUMANIZE</span>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 rounded-[4px] bg-[#111d3a] hover:bg-[#1a2a4a] text-[#94a3b8] hover:text-white text-xs font-mono transition-colors active:scale-95 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">casino</span>
+<span>12%</span>
+</button>
+<button class="px-2 py-1 rounded-[4px] bg-[#111d3a] hover:bg-[#1a2a4a] text-[#94a3b8] hover:text-[#60a5fa] text-xs transition-colors" title="Quick Velocity Scale">
+<span class="material-symbols-outlined text-sm">equalizer</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Right: Pattern Actions -->
+<div class="flex items-center gap-2 font-body text-xs">
+<button class="px-3 py-1.5 rounded-[4px] bg-[#111d3a] hover:bg-[#1a2a4a] text-[#94a3b8] hover:text-white font-medium transition-colors duration-150 active:scale-95 flex items-center gap-1.5" id="btn-copy-pattern">
+<span class="material-symbols-outlined text-sm">content_copy</span>
+<span>Copy</span>
+</button>
+<button class="px-3 py-1.5 rounded-[4px] bg-[#111d3a] hover:bg-[#1a2a4a] text-[#94a3b8] hover:text-white font-medium transition-colors duration-150 active:scale-95 flex items-center gap-1.5" id="btn-paste-pattern">
+<span class="material-symbols-outlined text-sm">content_paste</span>
+<span>Paste</span>
+</button>
+<button class="px-3 py-1.5 rounded-[4px] bg-[#111d3a] hover:bg-[#f87171]/20 text-[#94a3b8] hover:text-[#f87171] font-medium transition-colors duration-150 active:scale-95 flex items-center gap-1.5" id="btn-clear-pattern">
+<span class="material-symbols-outlined text-sm">delete_sweep</span>
+<span>Clear</span>
+</button>
+<div class="w-[1px] h-6 bg-[#111d3a] mx-1"></div>
+<button class="px-3 py-1.5 rounded-[4px] bg-[#111d3a] hover:bg-[#1a2a4a] text-[#60a5fa] font-medium transition-colors duration-150 active:scale-95 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">queue_music</span>
+<span>Fill Every 4th</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Interactive Micro-Interactions Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Toggle pad states
+      const pads = document.querySelectorAll('.step-pad');
+      pads.forEach(pad => {
+        pad.addEventListener('click', () => {
+          if (pad.classList.contains('bg-[#60a5fa]')) {
+            pad.classList.remove('bg-[#60a5fa]', 'shadow-md', 'shadow-[#60a5fa]/30');
+            pad.classList.add('bg-[#0c1428]');
+          } else {
+            pad.classList.remove('bg-[#0c1428]');
+            pad.classList.add('bg-[#60a5fa]', 'shadow-md', 'shadow-[#60a5fa]/30');
+          }
+        });
+      });
+
+      // Mute / Solo toggles
+      document.querySelectorAll('.track-btn-m').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          btn.classList.toggle('bg-[#f87171]');
+          btn.classList.toggle('text-white');
+          btn.classList.toggle('bg-[#0c1428]');
+          btn.classList.toggle('text-[#94a3b8]');
+        });
+      });
+
+      document.querySelectorAll('.track-btn-s').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          btn.classList.toggle('bg-[#fbbf24]');
+          btn.classList.toggle('text-[#080e1a]');
+          btn.classList.toggle('bg-[#0c1428]');
+          btn.classList.toggle('text-[#fbbf24]');
+        });
+      });
+
+      // Pattern Tab Switching
+      const patternTabs = document.querySelectorAll('.pattern-tab');
+      patternTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          patternTabs.forEach(t => {
+            t.classList.remove('bg-[#60a5fa]', 'text-[#080e1a]', 'font-bold');
+            t.classList.add('text-[#94a3b8]');
+          });
+          tab.classList.add('bg-[#60a5fa]', 'text-[#080e1a]', 'font-bold');
+          tab.classList.remove('text-[#94a3b8]');
+        });
+      });
+
+      // Swing slider update
+      const swingSlider = document.getElementById('swing-slider');
+      const swingVal = document.getElementById('swing-val');
+      if (swingSlider && swingVal) {
+        swingSlider.addEventListener('input', (e) => {
+          swingVal.textContent = e.target.value + '%';
+        });
+      }
+
+      // BPM Buttons
+      const bpmVal = document.getElementById('bpm-val');
+      let currentBpm = 124.00;
+      document.getElementById('bpm-inc')?.addEventListener('click', () => {
+        currentBpm = Math.min(220, currentBpm + 1);
+        bpmVal.textContent = currentBpm.toFixed(2);
+      });
+      document.getElementById('bpm-dec')?.addEventListener('click', () => {
+        currentBpm = Math.max(60, currentBpm - 1);
+        bpmVal.textContent = currentBpm.toFixed(2);
+      });
+
+      // Play/Stop simulation
+      let isPlaying = true;
+      const playBtn = document.getElementById('btn-play');
+      const stopBtn = document.getElementById('btn-stop');
+      
+      playBtn?.addEventListener('click', () => {
+        isPlaying = true;
+        playBtn.classList.add('bg-[#34d399]/30', 'shadow-[#34d399]/40');
+      });
+      
+      stopBtn?.addEventListener('click', () => {
+        isPlaying = false;
+        playBtn.classList.remove('bg-[#34d399]/30', 'shadow-[#34d399]/40');
+      });
+    });
+  </script>
+</body></html>

@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ALPHA-Band DAW - Mixer Console</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Public+Sans:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            // Mapping Design System named tokens
+            background: '#080e1a',
+            surface: '#0c1428',
+            'surface-elevated': '#111d3a',
+            'surface-hover': '#1a2a4a',
+            border: 'transparent',
+            'border-accent': 'rgba(96,165,250,0.5)',
+            primary: '#60a5fa',
+            'primary-hover': '#93c5fd',
+            'primary-muted': 'rgba(96,165,250,0.15)',
+            accent: '#f472b6',
+            'accent-muted': 'rgba(244,114,182,0.15)',
+            success: '#34d399',
+            warning: '#fbbf24',
+            error: '#f87171',
+            'text-primary': '#ffffff',
+            'text-secondary': '#94a3b8',
+            'text-muted': '#64748b',
+            'transport-play': '#34d399',
+            'transport-stop': '#f87171',
+            'track-record': '#f472b6',
+            'track-mute': '#94a3b8',
+            'track-solo': '#fbbf24'
+          },
+          borderRadius: {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          spacing: {},
+          fontFamily: {
+            "headline": ["Inter", "sans-serif"],
+            "display": ["Inter", "sans-serif"],
+            "body": ["Inter", "sans-serif"],
+            "label": ["Public Sans", "sans-serif"],
+            "mono": ["JetBrains Mono", "monospace"]
+          },
+          fontSize: {}
+        },
+      },
+    }
+  </script>
+<style>
+    /* Custom DAW LED & Metering Utilities */
+    .meter-glow-green { box-shadow: 0 0 6px rgba(52, 211, 153, 0.6); }
+    .meter-glow-yellow { box-shadow: 0 0 6px rgba(251, 191, 36, 0.7); }
+    .meter-glow-red { box-shadow: 0 0 8px rgba(248, 113, 113, 0.85); }
+    .shadow-console { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5); }
+    .shadow-fader-well { box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.85), inset 0 0 2px rgba(0, 0, 0, 0.9); }
+    .shadow-knob { box-shadow: 0 4px 8px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1); }
+    
+    /* Fader Cap Textured Ribbing */
+    .fader-thumb {
+      background: linear-gradient(180deg, #334155 0%, #1e293b 50%, #0f172a 100%);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    }
+    
+    /* Segmented meter bars */
+    .meter-segments {
+      background-size: 100% 4px;
+      background-image: linear-gradient(to bottom, rgba(8, 14, 26, 0.85) 1px, transparent 1px);
+    }
+
+    /* Hide scrollbars for slick rack view */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-[#080e1a] text-white font-body selection:bg-primary selection:text-white min-h-screen overflow-x-hidden antialiased flex flex-col">
+<!-- ================= TOP APP BAR (Preserved from Shared JSON) ================= -->
+<!-- style_shell_layout: fixed top-0 left-0 w-full h-[72px] z-50 flex items-center justify-between px-4 bg-[#0c1428] -->
+<header class="fixed top-0 left-0 w-full h-[72px] z-50 flex items-center justify-between px-4 bg-[#0c1428] shadow-sm select-none">
+<!-- Left: Brand Logo & Navigation Links -->
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="w-8 h-8 rounded bg-gradient-to-br from-primary to-accent flex items-center justify-center font-display font-bold text-white shadow-md">
+<span class="material-symbols-outlined text-[18px]">graphic_eq</span>
+</span>
+<span class="font-display font-bold text-base tracking-tight text-white">ALPHA-Band</span>
+</div>
+<!-- Navigation Links from JSON: File, Edit, Track, Mixer (Active), Window -->
+<nav class="hidden md:flex items-center gap-1 font-label text-xs tracking-wider uppercase">
+<button class="px-3 py-1.5 rounded text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors duration-150 active:scale-95">File</button>
+<button class="px-3 py-1.5 rounded text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors duration-150 active:scale-95">Edit</button>
+<button class="px-3 py-1.5 rounded text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors duration-150 active:scale-95">Track</button>
+<!-- Active Tab: Mixer -->
+<button class="px-3 py-1.5 rounded text-[#60a5fa] font-medium bg-[#111d3a] shadow-sm active:scale-95">Mixer</button>
+<button class="px-3 py-1.5 rounded text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors duration-150 active:scale-95">Window</button>
+</nav>
+</div>
+<!-- Center: Transport & Master DAW Telemetry Center -->
+<div class="flex items-center gap-3 bg-[#080e1a] px-3 py-1.5 rounded shadow-inner">
+<!-- Timecode / Bar Position -->
+<div class="flex items-center gap-2 px-2.5 py-1 bg-[#111d3a] rounded">
+<span class="font-label text-[10px] text-[#64748b] tracking-wider uppercase">POS</span>
+<span class="font-mono text-sm font-semibold text-[#60a5fa] tracking-wider">042 . 03 . 01</span>
+</div>
+<!-- Tempo Display & Tap -->
+<div class="flex items-center gap-1.5 px-2.5 py-1 bg-[#111d3a] rounded">
+<span class="font-mono text-sm font-semibold text-white">124.00</span>
+<span class="font-mono text-[10px] text-[#94a3b8]">BPM</span>
+<button class="ml-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#1a2a4a] text-primary hover:bg-primary hover:text-black transition-colors active:scale-95">TAP</button>
+</div>
+<!-- Time Signature & Key Signature -->
+<div class="hidden lg:flex items-center gap-1 px-2 py-1 bg-[#111d3a] rounded font-mono text-xs text-[#94a3b8]">
+<span class="text-white font-medium">4/4</span>
+<span class="text-[#64748b]">|</span>
+<span class="text-white font-medium">16th</span>
+</div>
+<!-- Playback Controls -->
+<div class="flex items-center gap-1 pl-1">
+<button class="w-8 h-8 rounded flex items-center justify-center text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors active:scale-95" title="Rewind">
+<span class="material-symbols-outlined text-[18px]">fast_rewind</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center text-[#f87171] hover:bg-[#1a2a4a] transition-colors active:scale-95" title="Stop">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">stop</span>
+</button>
+<button class="w-9 h-8 rounded bg-[#34d399] text-[#080e1a] flex items-center justify-center shadow-lg hover:bg-emerald-300 transition-colors active:scale-95" title="Play">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center text-[#f472b6] hover:bg-[#1a2a4a] transition-colors active:scale-95" title="Global Record">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">fiber_manual_record</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center text-[#60a5fa] hover:bg-[#1a2a4a] transition-colors active:scale-95" title="Cycle / Loop">
+<span class="material-symbols-outlined text-[18px]">repeat</span>
+</button>
+</div>
+</div>
+<!-- Right: Master Volume, Actions, & Utility Icons -->
+<div class="flex items-center gap-3">
+<!-- Master Volume Mini Fader/Dial Indicator -->
+<div class="hidden xl:flex items-center gap-2 bg-[#111d3a] px-3 py-1.5 rounded">
+<span class="material-symbols-outlined text-[16px] text-[#94a3b8]">volume_up</span>
+<div class="w-20 h-1.5 bg-[#080e1a] rounded overflow-hidden relative">
+<div class="h-full bg-primary rounded w-[78%]"></div>
+</div>
+<span class="font-mono text-xs text-white">-1.5 dB</span>
+</div>
+<!-- Trailing Action Buttons from JSON -->
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 rounded font-display text-xs font-semibold bg-[#111d3a] text-white hover:bg-[#1a2a4a] transition-colors duration-150 active:scale-95">
+          Save
+        </button>
+<button class="px-3.5 py-1.5 rounded font-display text-xs font-semibold bg-primary text-[#080e1a] hover:bg-primary-hover shadow transition-colors duration-150 active:scale-95">
+          Export
+        </button>
+</div>
+<!-- Trailing Icon Actions from JSON: settings, help, notifications -->
+<div class="flex items-center gap-0.5 border-l-0 pl-1">
+<button class="w-8 h-8 rounded flex items-center justify-center text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors active:scale-95" title="Settings">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+</button>
+<button class="w-8 h-8 rounded flex items-center justify-center text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors active:scale-95" title="Help">
+<span class="material-symbols-outlined text-[18px]">help</span>
+</button>
+<button class="w-8 h-8 rounded relative flex items-center justify-center text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors active:scale-95" title="Notifications">
+<span class="material-symbols-outlined text-[18px]">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded bg-accent"></span>
+</button>
+</div>
+</div>
+</header>
+<!-- ================= SUB-HEADER / MIXER WORKSPACE CONTROLS ================= -->
+<div class="mt-[72px] bg-[#0c1428] px-6 py-2.5 flex items-center justify-between text-xs text-[#94a3b8] select-none shadow-sm z-30">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="font-display font-semibold text-white tracking-wide">MIXER RACK</span>
+<span class="px-1.5 py-0.5 rounded bg-[#111d3a] font-mono text-[10px] text-primary">6 TRACKS ACTIVE</span>
+</div>
+<div class="h-4 w-[1px] bg-[#1a2a4a]"></div>
+<!-- View Filters -->
+<div class="flex items-center gap-1 font-label text-[11px]">
+<button class="px-2 py-1 rounded bg-[#111d3a] text-white font-medium">All Strips</button>
+<button class="px-2 py-1 rounded hover:bg-[#111d3a] hover:text-white transition-colors">Audio Only</button>
+<button class="px-2 py-1 rounded hover:bg-[#111d3a] hover:text-white transition-colors">Instruments</button>
+<button class="px-2 py-1 rounded hover:bg-[#111d3a] hover:text-white transition-colors">Buses &amp; Aux</button>
+</div>
+</div>
+<!-- Right Controls: Zoom & Meter Options -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 text-[11px] font-mono">
+<span>PEAK HOLD: <strong class="text-white">3.0s</strong></span>
+<span class="text-[#64748b]">•</span>
+<span>METER SCALE: <strong class="text-white">K-14 RMS</strong></span>
+</div>
+<div class="flex items-center gap-1 bg-[#111d3a] p-0.5 rounded">
+<button class="p-1 rounded text-primary hover:bg-[#1a2a4a]" title="Narrow Strips">
+<span class="material-symbols-outlined text-[16px]">view_column</span>
+</button>
+<button class="p-1 rounded text-[#94a3b8] hover:bg-[#1a2a4a]" title="Wide Strips">
+<span class="material-symbols-outlined text-[16px]">calendar_view_week</span>
+</button>
+</div>
+</div>
+</div>
+<!-- ================= MAIN MIXER CONSOLE SURFACE ================= -->
+<!-- Desktop 1440px target container width, no 1px borders, pure tonal layering & box shadows -->
+<main class="flex-1 w-full max-w-[1440px] mx-auto p-4 flex flex-col justify-start">
+<div class="flex items-stretch gap-3 overflow-x-auto no-scrollbar pb-4 pt-1">
+<!-- ================= STRIP 1: KICK ================= -->
+<div class="flex-1 min-w-[154px] max-w-[172px] bg-[#0c1428] rounded-xl p-3 flex flex-col justify-between shadow-console transition-all hover:bg-[#0e172e]">
+<!-- Header: Track Label, Number, Icon & Accent -->
+<div>
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-[#22c55e] shadow-[0_0_8px_#22c55e]"></span>
+<span class="font-mono text-[10px] text-[#64748b]">01</span>
+</div>
+<div class="flex items-center gap-1 text-[#64748b]">
+<span class="material-symbols-outlined text-[15px]">album</span>
+<span class="material-symbols-outlined text-[14px] hover:text-white cursor-pointer">more_vert</span>
+</div>
+</div>
+<div class="flex items-baseline justify-between mb-3">
+<h3 class="font-display font-semibold text-sm text-white tracking-tight truncate">Kick</h3>
+<span class="font-label text-[9px] text-[#22c55e] tracking-wider uppercase font-semibold">DRUM</span>
+</div>
+<!-- FX Insert Slots (4 stacked vertically) -->
+<div class="space-y-1 mb-3">
+<div class="text-[9px] font-mono text-[#64748b] uppercase tracking-wider mb-1 flex justify-between">
+<span>Inserts</span>
+<span class="text-primary hover:underline cursor-pointer">+</span>
+</div>
+<!-- FX 1: EQ 3-Band (Active) -->
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">EQ 3-Band</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#22c55e]/20 text-[#22c55e] text-[9px] font-bold" title="Bypass">
+                •
+              </button>
+</div>
+<!-- FX 2: Compressor (Active) -->
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">Compressor</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#22c55e]/20 text-[#22c55e] text-[9px] font-bold" title="Bypass">
+                •
+              </button>
+</div>
+<!-- FX 3: Reverb (Bypassed) -->
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a]/60 hover:bg-[#1a2a4a] transition-colors cursor-pointer group opacity-60">
+<span class="font-mono text-[11px] text-[#94a3b8] line-through truncate">Reverb</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#fbbf24]/20 text-[#fbbf24] text-[9px] font-bold" title="Bypassed">
+                –
+              </button>
+</div>
+<!-- FX 4: Delay (Empty slot) -->
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#080e1a]/80 hover:bg-[#111d3a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-[#475569] truncate italic">+ Add Slot</span>
+<span class="text-[#475569] text-[9px]">•</span>
+</div>
+</div>
+<!-- Rotary Pan Knob Section -->
+<div class="bg-[#111d3a] rounded-lg p-2 mb-3 flex flex-col items-center justify-center">
+<span class="font-label text-[9px] uppercase tracking-wider text-[#64748b] mb-1">PAN</span>
+<div class="relative w-8 h-8 rounded-full bg-[#080e1a] shadow-knob flex items-center justify-center cursor-pointer">
+<!-- Rotary Dial Ring & Center Marker -->
+<div class="absolute inset-0 rounded-full border-2 border-dashed border-[#1e293b]"></div>
+<div class="w-1 h-3.5 bg-[#22c55e] rounded-full absolute -top-0.5"></div>
+<div class="w-3 h-3 rounded-full bg-[#111d3a]"></div>
+</div>
+<span class="font-mono text-[10px] text-white font-medium mt-1">C</span>
+</div>
+<!-- Mute (M), Solo (S), Record Arm (R) -->
+<div class="grid grid-cols-3 gap-1.5 mb-4">
+<button class="py-1 rounded bg-[#111d3a] text-[#94a3b8] hover:bg-[#1a2a4a] hover:text-white font-mono text-xs font-bold transition-transform active:scale-95" title="Mute">M</button>
+<button class="py-1 rounded bg-[#111d3a] text-[#94a3b8] hover:bg-[#fbbf24]/20 hover:text-[#fbbf24] font-mono text-xs font-bold transition-transform active:scale-95" title="Solo">S</button>
+<button class="py-1 rounded bg-[#f472b6] text-white font-mono text-xs font-bold shadow-md transition-transform active:scale-95" title="Record Arm (Armed)">R</button>
+</div>
+</div>
+<!-- Fader & Peak Meter Section -->
+<div>
+<div class="flex items-center justify-center gap-3">
+<!-- Decibel Calibration Markings -->
+<div class="flex flex-col justify-between h-[200px] font-mono text-[9px] text-[#475569] select-none text-right">
+<span>+6</span>
+<span>0</span>
+<span>-6</span>
+<span>-12</span>
+<span>-24</span>
+<span>-inf</span>
+</div>
+<!-- Fader Well Track -->
+<div class="relative w-7 h-[200px] bg-[#080e1a] rounded shadow-fader-well flex justify-center cursor-pointer">
+<!-- Center Slot -->
+<div class="w-[2px] h-full bg-[#1e293b]"></div>
+<!-- 0 dB Reference line -->
+<div class="absolute top-[50px] w-full h-[1px] bg-[#334155]/60 pointer-events-none"></div>
+<!-- Fader Thumb Slider Cap (positioned around -2.4 dB) -->
+<div class="fader-thumb absolute top-[68px] w-7 h-11 rounded flex flex-col items-center justify-center cursor-grab active:cursor-grabbing z-10 border-t border-b border-[#475569]">
+<div class="w-4 h-[2px] bg-[#22c55e] mb-1 shadow-[0_0_4px_#22c55e]"></div>
+<div class="w-3.5 h-[1px] bg-[#64748b]"></div>
+</div>
+</div>
+<!-- Dual Stereo LED Peak Level Meter -->
+<div class="flex gap-1 h-[200px] bg-[#080e1a] p-0.5 rounded shadow-fader-well">
+<!-- Left Channel Meter -->
+<div class="w-1.5 h-full rounded-sm flex flex-col justify-end overflow-hidden meter-segments bg-[#080e1a]">
+<div class="w-full h-[65%] bg-gradient-to-t from-[#22c55e] via-[#34d399] to-[#fbbf24] meter-glow-green"></div>
+</div>
+<!-- Right Channel Meter -->
+<div class="w-1.5 h-full rounded-sm flex flex-col justify-end overflow-hidden meter-segments bg-[#080e1a]">
+<div class="w-full h-[63%] bg-gradient-to-t from-[#22c55e] via-[#34d399] to-[#fbbf24] meter-glow-green"></div>
+</div>
+</div>
+</div>
+<!-- Numerical dB Readout Badge -->
+<div class="mt-3 bg-[#111d3a] rounded py-1 px-2 text-center">
+<span class="font-mono text-xs font-semibold text-white tracking-tight">-2.4 dB</span>
+</div>
+</div>
+</div>
+<!-- ================= STRIP 2: SNARE ================= -->
+<div class="flex-1 min-w-[154px] max-w-[172px] bg-[#0c1428] rounded-xl p-3 flex flex-col justify-between shadow-console transition-all hover:bg-[#0e172e]">
+<div>
+<!-- Track Header -->
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-[#06b6d4] shadow-[0_0_8px_#06b6d4]"></span>
+<span class="font-mono text-[10px] text-[#64748b]">02</span>
+</div>
+<div class="flex items-center gap-1 text-[#64748b]">
+<span class="material-symbols-outlined text-[15px]">album</span>
+<span class="material-symbols-outlined text-[14px] hover:text-white cursor-pointer">more_vert</span>
+</div>
+</div>
+<div class="flex items-baseline justify-between mb-3">
+<h3 class="font-display font-semibold text-sm text-white tracking-tight truncate">Snare</h3>
+<span class="font-label text-[9px] text-[#06b6d4] tracking-wider uppercase font-semibold">DRUM</span>
+</div>
+<!-- FX Insert Slots -->
+<div class="space-y-1 mb-3">
+<div class="text-[9px] font-mono text-[#64748b] uppercase tracking-wider mb-1 flex justify-between">
+<span>Inserts</span>
+<span class="text-primary hover:underline cursor-pointer">+</span>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">EQ 3-Band</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#06b6d4]/20 text-[#06b6d4] text-[9px] font-bold">•</button>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">Reverb Plate</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#06b6d4]/20 text-[#06b6d4] text-[9px] font-bold">•</button>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">Compressor</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#06b6d4]/20 text-[#06b6d4] text-[9px] font-bold">•</button>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a]/60 hover:bg-[#1a2a4a] transition-colors cursor-pointer group opacity-60">
+<span class="font-mono text-[11px] text-[#94a3b8] line-through truncate">Gate</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#fbbf24]/20 text-[#fbbf24] text-[9px] font-bold">–</button>
+</div>
+</div>
+<!-- Pan Knob -->
+<div class="bg-[#111d3a] rounded-lg p-2 mb-3 flex flex-col items-center justify-center">
+<span class="font-label text-[9px] uppercase tracking-wider text-[#64748b] mb-1">PAN</span>
+<div class="relative w-8 h-8 rounded-full bg-[#080e1a] shadow-knob flex items-center justify-center cursor-pointer">
+<div class="w-1 h-3.5 bg-[#06b6d4] rounded-full absolute -top-0.5 transform -rotate-12"></div>
+<div class="w-3 h-3 rounded-full bg-[#111d3a]"></div>
+</div>
+<span class="font-mono text-[10px] text-white font-medium mt-1">L06</span>
+</div>
+<!-- M, S, R Buttons -->
+<div class="grid grid-cols-3 gap-1.5 mb-4">
+<button class="py-1 rounded bg-[#111d3a] text-[#94a3b8] hover:bg-[#1a2a4a] hover:text-white font-mono text-xs font-bold transition-transform active:scale-95">M</button>
+<button class="py-1 rounded bg-[#111d3a] text-[#94a3b8] hover:bg-[#fbbf24]/20 hover:text-[#fbbf24] font-mono text-xs font-bold transition-transform active:scale-95">S</button>
+<button class="py-1 rounded bg-[#111d3a] text-[#64748b] hover:text-[#f472b6] font-mono text-xs font-bold transition-transform active:scale-95">R</button>
+</div>
+</div>
+<!-- Fader & Meter -->
+<div>
+<div class="flex items-center justify-center gap-3">
+<div class="flex flex-col justify-between h-[200px] font-mono text-[9px] text-[#475569] select-none text-right">
+<span>+6</span>
+<span>0</span>
+<span>-6</span>
+<span>-12</span>
+<span>-24</span>
+<span>-inf</span>
+</div>
+<div class="relative w-7 h-[200px] bg-[#080e1a] rounded shadow-fader-well flex justify-center cursor-pointer">
+<div class="w-[2px] h-full bg-[#1e293b]"></div>
+<div class="absolute top-[50px] w-full h-[1px] bg-[#334155]/60 pointer-events-none"></div>
+<!-- Fader Cap (-0.8 dB) -->
+<div class="fader-thumb absolute top-[56px] w-7 h-11 rounded flex flex-col items-center justify-center cursor-grab active:cursor-grabbing z-10 border-t border-b border-[#475569]">
+<div class="w-4 h-[2px] bg-[#06b6d4] mb-1 shadow-[0_0_4px_#06b6d4]"></div>
+<div class="w-3.5 h-[1px] bg-[#64748b]"></div>
+</div>
+</div>
+<!-- LED Level Meter -->
+<div class="flex gap-1 h-[200px] bg-[#080e1a] p-0.5 rounded shadow-fader-well">
+<div class="w-1.5 h-full rounded-sm flex flex-col justify-end overflow-hidden meter-segments bg-[#080e1a]">
+<div class="w-full h-[74%] bg-gradient-to-t from-[#06b6d4] via-[#38bdf8] to-[#fbbf24] meter-glow-green"></div>
+</div>
+<div class="w-1.5 h-full rounded-sm flex flex-col justify-end overflow-hidden meter-segments bg-[#080e1a]">
+<div class="w-full h-[72%] bg-gradient-to-t from-[#06b6d4] via-[#38bdf8] to-[#fbbf24] meter-glow-green"></div>
+</div>
+</div>
+</div>
+<div class="mt-3 bg-[#111d3a] rounded py-1 px-2 text-center">
+<span class="font-mono text-xs font-semibold text-white tracking-tight">-0.8 dB</span>
+</div>
+</div>
+</div>
+<!-- ================= STRIP 3: BASS ================= -->
+<div class="flex-1 min-w-[154px] max-w-[172px] bg-[#0c1428] rounded-xl p-3 flex flex-col justify-between shadow-console transition-all hover:bg-[#0e172e]">
+<div>
+<!-- Track Header -->
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-[#60a5fa] shadow-[0_0_8px_#60a5fa]"></span>
+<span class="font-mono text-[10px] text-[#64748b]">03</span>
+</div>
+<div class="flex items-center gap-1 text-[#64748b]">
+<span class="material-symbols-outlined text-[15px]">graphic_eq</span>
+<span class="material-symbols-outlined text-[14px] hover:text-white cursor-pointer">more_vert</span>
+</div>
+</div>
+<div class="flex items-baseline justify-between mb-3">
+<h3 class="font-display font-semibold text-sm text-white tracking-tight truncate">Bass</h3>
+<span class="font-label text-[9px] text-[#60a5fa] tracking-wider uppercase font-semibold">SYNTH</span>
+</div>
+<!-- FX Insert Slots -->
+<div class="space-y-1 mb-3">
+<div class="text-[9px] font-mono text-[#64748b] uppercase tracking-wider mb-1 flex justify-between">
+<span>Inserts</span>
+<span class="text-primary hover:underline cursor-pointer">+</span>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">Sub Filter</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#60a5fa]/20 text-[#60a5fa] text-[9px] font-bold">•</button>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">Compressor</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#60a5fa]/20 text-[#60a5fa] text-[9px] font-bold">•</button>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">Overdrive</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#60a5fa]/20 text-[#60a5fa] text-[9px] font-bold">•</button>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">EQ 3-Band</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#60a5fa]/20 text-[#60a5fa] text-[9px] font-bold">•</button>
+</div>
+</div>
+<!-- Pan Knob -->
+<div class="bg-[#111d3a] rounded-lg p-2 mb-3 flex flex-col items-center justify-center">
+<span class="font-label text-[9px] uppercase tracking-wider text-[#64748b] mb-1">PAN</span>
+<div class="relative w-8 h-8 rounded-full bg-[#080e1a] shadow-knob flex items-center justify-center cursor-pointer">
+<div class="w-1 h-3.5 bg-[#60a5fa] rounded-full absolute -top-0.5"></div>
+<div class="w-3 h-3 rounded-full bg-[#111d3a]"></div>
+</div>
+<span class="font-mono text-[10px] text-white font-medium mt-1">C</span>
+</div>
+<!-- M, S, R Buttons (Solo Active) -->
+<div class="grid grid-cols-3 gap-1.5 mb-4">
+<button class="py-1 rounded bg-[#111d3a] text-[#94a3b8] hover:bg-[#1a2a4a] hover:text-white font-mono text-xs font-bold transition-transform active:scale-95">M</button>
+<button class="py-1 rounded bg-[#fbbf24] text-[#080e1a] font-mono text-xs font-bold shadow-md transition-transform active:scale-95">S</button>
+<button class="py-1 rounded bg-[#111d3a] text-[#64748b] hover:text-[#f472b6] font-mono text-xs font-bold transition-transform active:scale-95">R</button>
+</div>
+</div>
+<!-- Fader & Meter -->
+<div>
+<div class="flex items-center justify-center gap-3">
+<div class="flex flex-col justify-between h-[200px] font-mono text-[9px] text-[#475569] select-none text-right">
+<span>+6</span>
+<span>0</span>
+<span>-6</span>
+<span>-12</span>
+<span>-24</span>
+<span>-inf</span>
+</div>
+<div class="relative w-7 h-[200px] bg-[#080e1a] rounded shadow-fader-well flex justify-center cursor-pointer">
+<div class="w-[2px] h-full bg-[#1e293b]"></div>
+<div class="absolute top-[50px] w-full h-[1px] bg-[#334155]/60 pointer-events-none"></div>
+<!-- Fader Cap (-3.5 dB) -->
+<div class="fader-thumb absolute top-[80px] w-7 h-11 rounded flex flex-col items-center justify-center cursor-grab active:cursor-grabbing z-10 border-t border-b border-[#475569]">
+<div class="w-4 h-[2px] bg-[#60a5fa] mb-1 shadow-[0_0_4px_#60a5fa]"></div>
+<div class="w-3.5 h-[1px] bg-[#64748b]"></div>
+</div>
+</div>
+<!-- LED Level Meter -->
+<div class="flex gap-1 h-[200px] bg-[#080e1a] p-0.5 rounded shadow-fader-well">
+<div class="w-1.5 h-full rounded-sm flex flex-col justify-end overflow-hidden meter-segments bg-[#080e1a]">
+<div class="w-full h-[58%] bg-gradient-to-t from-[#60a5fa] via-[#38bdf8] to-[#fbbf24] meter-glow-green"></div>
+</div>
+<div class="w-1.5 h-full rounded-sm flex flex-col justify-end overflow-hidden meter-segments bg-[#080e1a]">
+<div class="w-full h-[58%] bg-gradient-to-t from-[#60a5fa] via-[#38bdf8] to-[#fbbf24] meter-glow-green"></div>
+</div>
+</div>
+</div>
+<div class="mt-3 bg-[#111d3a] rounded py-1 px-2 text-center">
+<span class="font-mono text-xs font-semibold text-white tracking-tight">-3.5 dB</span>
+</div>
+</div>
+</div>
+<!-- ================= STRIP 4: PAD ================= -->
+<div class="flex-1 min-w-[154px] max-w-[172px] bg-[#0c1428] rounded-xl p-3 flex flex-col justify-between shadow-console transition-all hover:bg-[#0e172e]">
+<div>
+<!-- Track Header -->
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-[#f472b6] shadow-[0_0_8px_#f472b6]"></span>
+<span class="font-mono text-[10px] text-[#64748b]">04</span>
+</div>
+<div class="flex items-center gap-1 text-[#64748b]">
+<span class="material-symbols-outlined text-[15px]">piano</span>
+<span class="material-symbols-outlined text-[14px] hover:text-white cursor-pointer">more_vert</span>
+</div>
+</div>
+<div class="flex items-baseline justify-between mb-3">
+<h3 class="font-display font-semibold text-sm text-white tracking-tight truncate">Pad</h3>
+<span class="font-label text-[9px] text-[#f472b6] tracking-wider uppercase font-semibold">SYNTH</span>
+</div>
+<!-- FX Insert Slots -->
+<div class="space-y-1 mb-3">
+<div class="text-[9px] font-mono text-[#64748b] uppercase tracking-wider mb-1 flex justify-between">
+<span>Inserts</span>
+<span class="text-primary hover:underline cursor-pointer">+</span>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">Chorus Lush</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#f472b6]/20 text-[#f472b6] text-[9px] font-bold">•</button>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">Space Reverb</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#f472b6]/20 text-[#f472b6] text-[9px] font-bold">•</button>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">EQ 3-Band</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#f472b6]/20 text-[#f472b6] text-[9px] font-bold">•</button>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#080e1a]/80 hover:bg-[#111d3a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-[#475569] truncate italic">+ Add Slot</span>
+<span class="text-[#475569] text-[9px]">•</span>
+</div>
+</div>
+<!-- Pan Knob (Pan Left L18) -->
+<div class="bg-[#111d3a] rounded-lg p-2 mb-3 flex flex-col items-center justify-center">
+<span class="font-label text-[9px] uppercase tracking-wider text-[#64748b] mb-1">PAN</span>
+<div class="relative w-8 h-8 rounded-full bg-[#080e1a] shadow-knob flex items-center justify-center cursor-pointer">
+<div class="w-1 h-3.5 bg-[#f472b6] rounded-full absolute -top-0.5 transform -rotate-45"></div>
+<div class="w-3 h-3 rounded-full bg-[#111d3a]"></div>
+</div>
+<span class="font-mono text-[10px] text-white font-medium mt-1">L18</span>
+</div>
+<!-- M, S, R Buttons -->
+<div class="grid grid-cols-3 gap-1.5 mb-4">
+<button class="py-1 rounded bg-[#111d3a] text-[#94a3b8] hover:bg-[#1a2a4a] hover:text-white font-mono text-xs font-bold transition-transform active:scale-95">M</button>
+<button class="py-1 rounded bg-[#111d3a] text-[#94a3b8] hover:bg-[#fbbf24]/20 hover:text-[#fbbf24] font-mono text-xs font-bold transition-transform active:scale-95">S</button>
+<button class="py-1 rounded bg-[#111d3a] text-[#64748b] hover:text-[#f472b6] font-mono text-xs font-bold transition-transform active:scale-95">R</button>
+</div>
+</div>
+<!-- Fader & Meter -->
+<div>
+<div class="flex items-center justify-center gap-3">
+<div class="flex flex-col justify-between h-[200px] font-mono text-[9px] text-[#475569] select-none text-right">
+<span>+6</span>
+<span>0</span>
+<span>-6</span>
+<span>-12</span>
+<span>-24</span>
+<span>-inf</span>
+</div>
+<div class="relative w-7 h-[200px] bg-[#080e1a] rounded shadow-fader-well flex justify-center cursor-pointer">
+<div class="w-[2px] h-full bg-[#1e293b]"></div>
+<div class="absolute top-[50px] w-full h-[1px] bg-[#334155]/60 pointer-events-none"></div>
+<!-- Fader Cap (-6.0 dB) -->
+<div class="fader-thumb absolute top-[105px] w-7 h-11 rounded flex flex-col items-center justify-center cursor-grab active:cursor-grabbing z-10 border-t border-b border-[#475569]">
+<div class="w-4 h-[2px] bg-[#f472b6] mb-1 shadow-[0_0_4px_#f472b6]"></div>
+<div class="w-3.5 h-[1px] bg-[#64748b]"></div>
+</div>
+</div>
+<!-- LED Level Meter -->
+<div class="flex gap-1 h-[200px] bg-[#080e1a] p-0.5 rounded shadow-fader-well">
+<div class="w-1.5 h-full rounded-sm flex flex-col justify-end overflow-hidden meter-segments bg-[#080e1a]">
+<div class="w-full h-[45%] bg-gradient-to-t from-[#f472b6] via-[#c084fc] to-[#fbbf24] meter-glow-green"></div>
+</div>
+<div class="w-1.5 h-full rounded-sm flex flex-col justify-end overflow-hidden meter-segments bg-[#080e1a]">
+<div class="w-full h-[48%] bg-gradient-to-t from-[#f472b6] via-[#c084fc] to-[#fbbf24] meter-glow-green"></div>
+</div>
+</div>
+</div>
+<div class="mt-3 bg-[#111d3a] rounded py-1 px-2 text-center">
+<span class="font-mono text-xs font-semibold text-white tracking-tight">-6.0 dB</span>
+</div>
+</div>
+</div>
+<!-- ================= STRIP 5: LEAD ================= -->
+<div class="flex-1 min-w-[154px] max-w-[172px] bg-[#0c1428] rounded-xl p-3 flex flex-col justify-between shadow-console transition-all hover:bg-[#0e172e]">
+<div>
+<!-- Track Header -->
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-[#f59e0b] shadow-[0_0_8px_#f59e0b]"></span>
+<span class="font-mono text-[10px] text-[#64748b]">05</span>
+</div>
+<div class="flex items-center gap-1 text-[#64748b]">
+<span class="material-symbols-outlined text-[15px]">piano</span>
+<span class="material-symbols-outlined text-[14px] hover:text-white cursor-pointer">more_vert</span>
+</div>
+</div>
+<div class="flex items-baseline justify-between mb-3">
+<h3 class="font-display font-semibold text-sm text-white tracking-tight truncate">Lead</h3>
+<span class="font-label text-[9px] text-[#f59e0b] tracking-wider uppercase font-semibold">SYNTH</span>
+</div>
+<!-- FX Insert Slots -->
+<div class="space-y-1 mb-3">
+<div class="text-[9px] font-mono text-[#64748b] uppercase tracking-wider mb-1 flex justify-between">
+<span>Inserts</span>
+<span class="text-primary hover:underline cursor-pointer">+</span>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">Tape Echo</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#f59e0b]/20 text-[#f59e0b] text-[9px] font-bold">•</button>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">EQ 3-Band</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#f59e0b]/20 text-[#f59e0b] text-[9px] font-bold">•</button>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">Compressor</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#f59e0b]/20 text-[#f59e0b] text-[9px] font-bold">•</button>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a]/60 hover:bg-[#1a2a4a] transition-colors cursor-pointer group opacity-60">
+<span class="font-mono text-[11px] text-[#94a3b8] line-through truncate">Phaser</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#fbbf24]/20 text-[#fbbf24] text-[9px] font-bold">–</button>
+</div>
+</div>
+<!-- Pan Knob (Pan Right R24) -->
+<div class="bg-[#111d3a] rounded-lg p-2 mb-3 flex flex-col items-center justify-center">
+<span class="font-label text-[9px] uppercase tracking-wider text-[#64748b] mb-1">PAN</span>
+<div class="relative w-8 h-8 rounded-full bg-[#080e1a] shadow-knob flex items-center justify-center cursor-pointer">
+<div class="w-1 h-3.5 bg-[#f59e0b] rounded-full absolute -top-0.5 transform rotate-45"></div>
+<div class="w-3 h-3 rounded-full bg-[#111d3a]"></div>
+</div>
+<span class="font-mono text-[10px] text-white font-medium mt-1">R24</span>
+</div>
+<!-- M, S, R Buttons -->
+<div class="grid grid-cols-3 gap-1.5 mb-4">
+<button class="py-1 rounded bg-[#111d3a] text-[#94a3b8] hover:bg-[#1a2a4a] hover:text-white font-mono text-xs font-bold transition-transform active:scale-95">M</button>
+<button class="py-1 rounded bg-[#111d3a] text-[#94a3b8] hover:bg-[#fbbf24]/20 hover:text-[#fbbf24] font-mono text-xs font-bold transition-transform active:scale-95">S</button>
+<button class="py-1 rounded bg-[#111d3a] text-[#64748b] hover:text-[#f472b6] font-mono text-xs font-bold transition-transform active:scale-95">R</button>
+</div>
+</div>
+<!-- Fader & Meter -->
+<div>
+<div class="flex items-center justify-center gap-3">
+<div class="flex flex-col justify-between h-[200px] font-mono text-[9px] text-[#475569] select-none text-right">
+<span>+6</span>
+<span>0</span>
+<span>-6</span>
+<span>-12</span>
+<span>-24</span>
+<span>-inf</span>
+</div>
+<div class="relative w-7 h-[200px] bg-[#080e1a] rounded shadow-fader-well flex justify-center cursor-pointer">
+<div class="w-[2px] h-full bg-[#1e293b]"></div>
+<div class="absolute top-[50px] w-full h-[1px] bg-[#334155]/60 pointer-events-none"></div>
+<!-- Fader Cap (-1.2 dB) -->
+<div class="fader-thumb absolute top-[62px] w-7 h-11 rounded flex flex-col items-center justify-center cursor-grab active:cursor-grabbing z-10 border-t border-b border-[#475569]">
+<div class="w-4 h-[2px] bg-[#f59e0b] mb-1 shadow-[0_0_4px_#f59e0b]"></div>
+<div class="w-3.5 h-[1px] bg-[#64748b]"></div>
+</div>
+</div>
+<!-- LED Level Meter -->
+<div class="flex gap-1 h-[200px] bg-[#080e1a] p-0.5 rounded shadow-fader-well">
+<div class="w-1.5 h-full rounded-sm flex flex-col justify-end overflow-hidden meter-segments bg-[#080e1a]">
+<div class="w-full h-[70%] bg-gradient-to-t from-[#f59e0b] via-[#fbbf24] to-[#f87171] meter-glow-yellow"></div>
+</div>
+<div class="w-1.5 h-full rounded-sm flex flex-col justify-end overflow-hidden meter-segments bg-[#080e1a]">
+<div class="w-full h-[76%] bg-gradient-to-t from-[#f59e0b] via-[#fbbf24] to-[#f87171] meter-glow-yellow"></div>
+</div>
+</div>
+</div>
+<div class="mt-3 bg-[#111d3a] rounded py-1 px-2 text-center">
+<span class="font-mono text-xs font-semibold text-white tracking-tight">-1.2 dB</span>
+</div>
+</div>
+</div>
+<!-- ================= STRIP 6: FX ================= -->
+<div class="flex-1 min-w-[154px] max-w-[172px] bg-[#0c1428] rounded-xl p-3 flex flex-col justify-between shadow-console transition-all hover:bg-[#0e172e]">
+<div>
+<!-- Track Header -->
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-[#8b5cf6] shadow-[0_0_8px_#8b5cf6]"></span>
+<span class="font-mono text-[10px] text-[#64748b]">06</span>
+</div>
+<div class="flex items-center gap-1 text-[#64748b]">
+<span class="material-symbols-outlined text-[15px]">auto_awesome</span>
+<span class="material-symbols-outlined text-[14px] hover:text-white cursor-pointer">more_vert</span>
+</div>
+</div>
+<div class="flex items-baseline justify-between mb-3">
+<h3 class="font-display font-semibold text-sm text-white tracking-tight truncate">FX</h3>
+<span class="font-label text-[9px] text-[#8b5cf6] tracking-wider uppercase font-semibold">RETURN</span>
+</div>
+<!-- FX Insert Slots -->
+<div class="space-y-1 mb-3">
+<div class="text-[9px] font-mono text-[#64748b] uppercase tracking-wider mb-1 flex justify-between">
+<span>Inserts</span>
+<span class="text-primary hover:underline cursor-pointer">+</span>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">Grain Shifter</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#8b5cf6]/20 text-[#8b5cf6] text-[9px] font-bold">•</button>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">Delay Tape</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#8b5cf6]/20 text-[#8b5cf6] text-[9px] font-bold">•</button>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">Compressor</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#8b5cf6]/20 text-[#8b5cf6] text-[9px] font-bold">•</button>
+</div>
+<div class="flex items-center justify-between px-2 py-1 rounded bg-[#111d3a] hover:bg-[#1a2a4a] transition-colors cursor-pointer group">
+<span class="font-mono text-[11px] text-white truncate group-hover:text-primary">Sidechain</span>
+<button class="w-3.5 h-3.5 rounded flex items-center justify-center bg-[#8b5cf6]/20 text-[#8b5cf6] text-[9px] font-bold">•</button>
+</div>
+</div>
+<!-- Pan Knob -->
+<div class="bg-[#111d3a] rounded-lg p-2 mb-3 flex flex-col items-center justify-center">
+<span class="font-label text-[9px] uppercase tracking-wider text-[#64748b] mb-1">PAN</span>
+<div class="relative w-8 h-8 rounded-full bg-[#080e1a] shadow-knob flex items-center justify-center cursor-pointer">
+<div class="w-1 h-3.5 bg-[#8b5cf6] rounded-full absolute -top-0.5"></div>
+<div class="w-3 h-3 rounded-full bg-[#111d3a]"></div>
+</div>
+<span class="font-mono text-[10px] text-white font-medium mt-1">C</span>
+</div>
+<!-- M, S, R Buttons (Mute Active state) -->
+<div class="grid grid-cols-3 gap-1.5 mb-4">
+<button class="py-1 rounded bg-[#60a5fa] text-[#080e1a] font-mono text-xs font-bold shadow-md transition-transform active:scale-95" title="Muted">M</button>
+<button class="py-1 rounded bg-[#111d3a] text-[#94a3b8] hover:bg-[#fbbf24]/20 hover:text-[#fbbf24] font-mono text-xs font-bold transition-transform active:scale-95">S</button>
+<button class="py-1 rounded bg-[#111d3a] text-[#64748b] hover:text-[#f472b6] font-mono text-xs font-bold transition-transform active:scale-95">R</button>
+</div>
+</div>
+<!-- Fader & Meter -->
+<div>
+<div class="flex items-center justify-center gap-3">
+<div class="flex flex-col justify-between h-[200px] font-mono text-[9px] text-[#475569] select-none text-right">
+<span>+6</span>
+<span>0</span>
+<span>-6</span>
+<span>-12</span>
+<span>-24</span>
+<span>-inf</span>
+</div>
+<div class="relative w-7 h-[200px] bg-[#080e1a] rounded shadow-fader-well flex justify-center cursor-pointer">
+<div class="w-[2px] h-full bg-[#1e293b]"></div>
+<div class="absolute top-[50px] w-full h-[1px] bg-[#334155]/60 pointer-events-none"></div>
+<!-- Fader Cap (-14.0 dB) -->
+<div class="fader-thumb absolute top-[138px] w-7 h-11 rounded flex flex-col items-center justify-center cursor-grab active:cursor-grabbing z-10 border-t border-b border-[#475569]">
+<div class="w-4 h-[2px] bg-[#8b5cf6] mb-1 shadow-[0_0_4px_#8b5cf6]"></div>
+<div class="w-3.5 h-[1px] bg-[#64748b]"></div>
+</div>
+</div>
+<!-- LED Level Meter (Muted low level) -->
+<div class="flex gap-1 h-[200px] bg-[#080e1a] p-0.5 rounded shadow-fader-well">
+<div class="w-1.5 h-full rounded-sm flex flex-col justify-end overflow-hidden meter-segments bg-[#080e1a]">
+<div class="w-full h-[22%] bg-[#8b5cf6]/50"></div>
+</div>
+<div class="w-1.5 h-full rounded-sm flex flex-col justify-end overflow-hidden meter-segments bg-[#080e1a]">
+<div class="w-full h-[20%] bg-[#8b5cf6]/50"></div>
+</div>
+</div>
+</div>
+<div class="mt-3 bg-[#111d3a] rounded py-1 px-2 text-center">
+<span class="font-mono text-xs font-semibold text-[#94a3b8] tracking-tight">-14.0 dB</span>
+</div>
+</div>
+</div>
+<!-- ================= SEPARATOR TONAL ACCENT ================= -->
+<div class="w-1 self-stretch bg-gradient-to-b from-[#111d3a] via-[#1a2a4a] to-[#111d3a] rounded-full my-4 opacity-50"></div>
+<!-- ================= MASTER BUS STRIP (Dedicated & Wide Section) ================= -->
+<div class="w-[230px] flex-shrink-0 bg-[#0c1428] rounded-xl p-3.5 flex flex-col justify-between shadow-2xl relative">
+<!-- Subtle Top Glow Badge -->
+<div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-accent to-warning rounded-t-xl opacity-90"></div>
+<div>
+<!-- Header -->
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_8px_#ffffff]"></span>
+<span class="font-mono text-[10px] text-primary font-bold">BUS OUT</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="px-1.5 py-0.5 rounded text-[9px] font-mono bg-[#111d3a] text-success">ONLINE</span>
+</div>
+</div>
+<div class="flex items-baseline justify-between mb-3">
+<h2 class="font-display font-bold text-base text-white tracking-tight">Master Bus</h2>
+<span class="font-mono text-[10px] text-[#94a3b8]">24-bit / 48k</span>
+</div>
+<!-- Digital Telemetry Bento: LUFS & True Peak -->
+<div class="grid grid-cols-2 gap-2 mb-3">
+<div class="bg-[#111d3a] p-2 rounded flex flex-col">
+<span class="font-label text-[9px] uppercase tracking-wider text-[#94a3b8]">INTEG. LUFS</span>
+<span class="font-mono text-sm font-bold text-primary mt-0.5">-14.2</span>
+<span class="text-[9px] font-mono text-[#64748b]">Target -14</span>
+</div>
+<div class="bg-[#111d3a] p-2 rounded flex flex-col">
+<span class="font-label text-[9px] uppercase tracking-wider text-[#94a3b8]">TRUE PEAK</span>
+<span class="font-mono text-sm font-bold text-success mt-0.5">-0.3 dB</span>
+<span class="text-[9px] font-mono text-[#64748b]">Ceiling -0.1</span>
+</div>
+</div>
+<!-- Bus Limiter & Compressor Status -->
+<div class="bg-[#111d3a] rounded p-2 mb-3 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-warning animate-pulse"></span>
+<span class="font-mono text-[11px] text-white">SSL G-Master Bus</span>
+</div>
+<span class="font-mono text-[10px] text-warning bg-warning/10 px-1.5 py-0.5 rounded">GR -1.8 dB</span>
+</div>
+<!-- Master Processing Controls: Stereo Width knob & Mono Sum Switch -->
+<div class="grid grid-cols-2 gap-2 mb-3">
+<!-- Stereo Width Knob -->
+<div class="bg-[#111d3a] rounded-lg p-2 flex flex-col items-center justify-center">
+<span class="font-label text-[9px] uppercase tracking-wider text-[#64748b] mb-1">WIDTH</span>
+<div class="relative w-8 h-8 rounded-full bg-[#080e1a] shadow-knob flex items-center justify-center cursor-pointer">
+<div class="w-1 h-3.5 bg-primary rounded-full absolute -top-0.5"></div>
+<div class="w-3 h-3 rounded-full bg-[#111d3a]"></div>
+</div>
+<span class="font-mono text-[10px] text-white font-medium mt-1">100%</span>
+</div>
+<!-- Mono Sum Toggle Switch -->
+<div class="bg-[#111d3a] rounded-lg p-2 flex flex-col items-center justify-center">
+<span class="font-label text-[9px] uppercase tracking-wider text-[#64748b] mb-1">MONO SUM</span>
+<button class="w-full mt-1 py-1.5 rounded bg-[#1a2a4a] text-[#94a3b8] hover:text-white font-mono text-[11px] font-bold transition-all active:scale-95 flex items-center justify-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-[#475569]"></span>
+<span>STEREO</span>
+</button>
+</div>
+</div>
+<!-- Dim & Mute Global Master -->
+<div class="grid grid-cols-2 gap-2 mb-4">
+<button class="py-1 rounded bg-[#111d3a] text-[#94a3b8] hover:bg-[#1a2a4a] hover:text-white font-mono text-xs font-semibold active:scale-95">DIM (-20dB)</button>
+<button class="py-1 rounded bg-[#111d3a] text-[#94a3b8] hover:bg-[#f87171]/20 hover:text-[#f87171] font-mono text-xs font-semibold active:scale-95">MUTE ALL</button>
+</div>
+</div>
+<!-- Master Precision Fader & Segmented VU Meter -->
+<div>
+<div class="flex items-center justify-center gap-3">
+<!-- Calibration Markings -->
+<div class="flex flex-col justify-between h-[200px] font-mono text-[9px] text-[#64748b] select-none text-right">
+<span class="text-error">+6</span>
+<span class="text-white font-bold">0</span>
+<span>-3</span>
+<span>-6</span>
+<span>-12</span>
+<span>-24</span>
+<span>-inf</span>
+</div>
+<!-- Precision Master Fader Track -->
+<div class="relative w-8 h-[200px] bg-[#080e1a] rounded shadow-fader-well flex justify-center cursor-pointer">
+<!-- Center Slot & 0dB line -->
+<div class="w-[3px] h-full bg-[#1e293b]"></div>
+<div class="absolute top-[50px] w-full h-[1.5px] bg-primary/70 pointer-events-none"></div>
+<!-- High-Precision Master Fader Cap (Parked at exact 0.0 dB) -->
+<div class="fader-thumb absolute top-[50px] w-8 h-12 rounded flex flex-col items-center justify-center cursor-grab active:cursor-grabbing z-10 border-t border-b border-primary shadow-lg">
+<div class="w-5 h-[2px] bg-white mb-1 shadow-[0_0_6px_#ffffff]"></div>
+<div class="w-4 h-[1px] bg-[#94a3b8]"></div>
+<div class="w-3 h-[1px] bg-[#475569] mt-0.5"></div>
+</div>
+</div>
+<!-- Large Master Segmented LED Stereo VU Meters -->
+<div class="flex gap-1.5 h-[200px] bg-[#080e1a] p-1 rounded shadow-fader-well">
+<!-- Left VU Meter Segment -->
+<div class="w-2.5 h-full rounded-sm flex flex-col justify-end overflow-hidden meter-segments bg-[#080e1a]">
+<!-- Red Peak clip zone (top 10%) -->
+<!-- Amber caution zone (next 25%) -->
+<!-- Green nominal zone (bottom 65%) -->
+<div class="w-full h-[75%] bg-gradient-to-t from-[#22c55e] via-[#fbbf24] to-[#f87171] meter-glow-yellow"></div>
+</div>
+<!-- Right VU Meter Segment -->
+<div class="w-2.5 h-full rounded-sm flex flex-col justify-end overflow-hidden meter-segments bg-[#080e1a]">
+<div class="w-full h-[77%] bg-gradient-to-t from-[#22c55e] via-[#fbbf24] to-[#f87171] meter-glow-yellow"></div>
+</div>
+</div>
+</div>
+<!-- Master Readout Badge -->
+<div class="mt-3 bg-[#111d3a] rounded py-1 px-3 text-center flex items-center justify-between">
+<span class="font-label text-[9px] text-[#94a3b8] tracking-widest uppercase">MASTER</span>
+<span class="font-mono text-sm font-bold text-white tracking-tight">0.0 dB</span>
+</div>
+</div>
+</div>
+</div>
+<!-- ================= BOTTOM MONITORING BAR ================= -->
+<footer class="mt-2 bg-[#0c1428] rounded-xl px-4 py-2.5 flex items-center justify-between text-xs text-[#94a3b8] shadow-console select-none">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#34d399]"></span>
+<span class="font-display font-medium text-white">Audio Engine: CoreAudio (Low Latency 64 spls / 1.3ms)</span>
+</div>
+<span class="text-[#64748b]">•</span>
+<div class="font-mono text-[11px] text-[#94a3b8]">DSP Load: <strong class="text-white">18%</strong></div>
+<div class="font-mono text-[11px] text-[#94a3b8]">RAM: <strong class="text-white">3.4 GB</strong></div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-1.5">
+<span class="font-label text-[10px] tracking-wider uppercase">Headroom:</span>
+<span class="font-mono text-[11px] text-[#34d399] font-semibold">+2.1 dB</span>
+</div>
+<div class="h-3 w-[1px] bg-[#1a2a4a]"></div>
+<div class="flex items-center gap-2">
+<button class="px-2.5 py-1 rounded bg-[#111d3a] text-white hover:bg-[#1a2a4a] text-xs font-medium transition-colors">Clear Peak Clips</button>
+<button class="px-2.5 py-1 rounded bg-[#111d3a] text-white hover:bg-[#1a2a4a] text-xs font-medium transition-colors">Rack Settings</button>
+</div>
+</div>
+</footer>
+</main>
+<!-- Interactive feedback micro-script for UI tactile response -->
+<script>
+    // Lightweight micro-interaction logic for knob clicking and mute toggles
+    document.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        if (this.innerText === 'M') {
+          this.classList.toggle('bg-[#60a5fa]');
+          this.classList.toggle('text-[#080e1a]');
+        } else if (this.innerText === 'S') {
+          this.classList.toggle('bg-[#fbbf24]');
+          this.classList.toggle('text-[#080e1a]');
+        }
+      });
+    });
+  </script>
+</body></html>

@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ALPHA-Band DAW - Loop Library</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Inter & JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Public+Sans:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {},
+          borderRadius: {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          spacing: {},
+          fontFamily: {
+            "headline": ["Inter", "sans-serif"],
+            "display": ["Inter", "sans-serif"],
+            "body": ["Inter", "sans-serif"],
+            "label": ["Public Sans", "sans-serif"],
+            "mono": ["JetBrains Mono", "monospace"]
+          },
+          fontSize: {}
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      line-height: 1;
+    }
+    /* Custom subtle audio scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080e1a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1a2a4a;
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #60a5fa;
+    }
+    /* Pulsing & audio glow micro-utilities */
+    .glow-blue {
+      box-shadow: 0 0 14px rgba(96, 165, 250, 0.35);
+    }
+    .inner-glow-blue:hover {
+      box-shadow: inset 0 0 14px rgba(96, 165, 250, 0.22);
+    }
+  </style>
+</head>
+<body class="bg-[#080e1a] text-[#ffffff] font-body antialiased overflow-hidden select-none h-screen w-screen flex flex-col">
+<!-- TopNavBar (Shared Component Anchor) -->
+<header class="fixed top-0 left-0 w-full h-[72px] z-50 flex items-center justify-between px-4 bg-[#0c1428] dark:bg-[#0c1428] shadow-sm select-none">
+<!-- Brand Anchor & Window Actions -->
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-DEFAULT bg-[#111d3a] flex items-center justify-center text-[#60a5fa] shadow-sm">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">graphic_eq</span>
+</div>
+<span class="font-display font-bold text-base tracking-tight text-white">ALPHA-Band</span>
+<span class="font-mono text-xs px-2 py-0.5 rounded-DEFAULT bg-[#111d3a] text-[#60a5fa] font-medium">DAW v3.4</span>
+</div>
+<!-- Navigation Menus (Shared Components: ["File", "Edit", "Track", "Mixer", "Window"]) -->
+<nav class="hidden md:flex items-center gap-1 font-body text-xs">
+<button class="px-2.5 py-1.5 rounded-DEFAULT text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors duration-150 active:scale-95">File</button>
+<button class="px-2.5 py-1.5 rounded-DEFAULT text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors duration-150 active:scale-95">Edit</button>
+<button class="px-2.5 py-1.5 rounded-DEFAULT text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors duration-150 active:scale-95">Track</button>
+<button class="px-2.5 py-1.5 rounded-DEFAULT text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors duration-150 active:scale-95">Mixer</button>
+<button class="px-2.5 py-1.5 rounded-DEFAULT text-[#60a5fa] font-medium bg-[#111d3a] transition-colors duration-150 active:scale-95">Window</button>
+</nav>
+</div>
+<!-- Central DAW Transport & Clock Control -->
+<div class="flex items-center gap-4 bg-[#111d3a] px-3 py-1.5 rounded-DEFAULT shadow-sm">
+<!-- Transport Buttons -->
+<div class="flex items-center gap-1">
+<button class="w-7 h-7 rounded-DEFAULT flex items-center justify-center text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors" title="Rewind">
+<span class="material-symbols-outlined text-[18px]">fast_rewind</span>
+</button>
+<button class="w-7 h-7 rounded-DEFAULT flex items-center justify-center text-[#f87171] hover:bg-[#1a2a4a] transition-colors" title="Stop">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">stop</span>
+</button>
+<button class="w-8 h-8 rounded-DEFAULT flex items-center justify-center bg-[#34d399]/20 text-[#34d399] hover:bg-[#34d399]/30 transition-colors shadow-sm" title="Play">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<button class="w-7 h-7 rounded-DEFAULT flex items-center justify-center text-[#f472b6] hover:bg-[#1a2a4a] transition-colors" title="Record">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">radio_button_checked</span>
+</button>
+<button class="w-7 h-7 rounded-DEFAULT flex items-center justify-center text-[#60a5fa] hover:bg-[#1a2a4a] transition-colors" title="Loop Toggle">
+<span class="material-symbols-outlined text-[18px]">repeat</span>
+</button>
+</div>
+<!-- Time Display & Tempo Engine -->
+<div class="h-5 w-[1px] bg-[#1a2a4a]"></div>
+<div class="flex items-center gap-3 font-mono">
+<div class="flex flex-col text-right">
+<span class="text-xs text-[#94a3b8] leading-none">BAR : BEAT</span>
+<span class="text-sm text-white font-semibold tracking-wider">032 . 03 . 12</span>
+</div>
+<div class="h-5 w-[1px] bg-[#1a2a4a]"></div>
+<div class="flex flex-col">
+<span class="text-xs text-[#94a3b8] leading-none">TEMPO</span>
+<div class="flex items-center gap-1 text-sm text-[#60a5fa] font-semibold">
+<span>124.00</span>
+<span class="text-[10px] text-[#94a3b8]">BPM</span>
+</div>
+</div>
+<div class="h-5 w-[1px] bg-[#1a2a4a]"></div>
+<div class="flex flex-col">
+<span class="text-xs text-[#94a3b8] leading-none">TIME SIG</span>
+<span class="text-sm text-white font-semibold">4 / 4</span>
+</div>
+</div>
+</div>
+<!-- Trailing Actions (Export, Save, Settings, Notifications) -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded-DEFAULT flex items-center justify-center text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors" title="Notifications">
+<span class="material-symbols-outlined text-[18px]">notifications</span>
+</button>
+<button class="w-8 h-8 rounded-DEFAULT flex items-center justify-center text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors" title="Help">
+<span class="material-symbols-outlined text-[18px]">help</span>
+</button>
+<button class="w-8 h-8 rounded-DEFAULT flex items-center justify-center text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors" title="Settings">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+</button>
+</div>
+<div class="h-6 w-[1px] bg-[#111d3a]"></div>
+<button class="px-3 py-1.5 rounded-DEFAULT text-xs font-medium text-[#94a3b8] hover:text-white bg-[#111d3a] hover:bg-[#1a2a4a] active:scale-95 transition-all">
+        Save
+      </button>
+<button class="px-3.5 py-1.5 rounded-DEFAULT text-xs font-semibold text-[#080e1a] bg-[#60a5fa] hover:bg-[#93c5fd] active:scale-95 transition-all shadow-sm">
+        Export
+      </button>
+</div>
+</header>
+<!-- Main DAW App Layout Body (Offset by 72px TopBar) -->
+<div class="flex flex-1 pt-[72px] h-screen overflow-hidden">
+<!-- COLLAPSED STRIP MODE (60px preview strip toggled/adjacent for architectural demonstration) -->
+<aside class="w-[60px] h-full bg-[#0c1428] flex flex-col justify-between items-center py-3 select-none flex-shrink-0 z-30 shadow-md" id="collapsed-strip">
+<!-- Top Strip Header / Toggle -->
+<div class="flex flex-col items-center gap-3 w-full">
+<button class="w-9 h-9 rounded-DEFAULT flex items-center justify-center text-[#60a5fa] hover:bg-[#1a2a4a] active:scale-95 transition-colors" id="toggle-sidebar-btn" title="Toggle Loop Library Expanded View">
+<span class="material-symbols-outlined text-[20px]">view_sidebar</span>
+</button>
+<div class="w-6 h-[1px] bg-[#111d3a]"></div>
+<!-- Strip Category Quick Tabs (album, graphic_eq, piano, auto_awesome, loop) -->
+<div class="flex flex-col items-center gap-2 w-full px-2">
+<button class="w-9 h-9 rounded-DEFAULT flex items-center justify-center text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors" title="Drums">
+<span class="material-symbols-outlined text-[18px]">album</span>
+</button>
+<button class="w-9 h-9 rounded-DEFAULT flex items-center justify-center text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors" title="Bass">
+<span class="material-symbols-outlined text-[18px]">graphic_eq</span>
+</button>
+<button class="w-9 h-9 rounded-DEFAULT flex items-center justify-center text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors" title="Synth">
+<span class="material-symbols-outlined text-[18px]">piano</span>
+</button>
+<button class="w-9 h-9 rounded-DEFAULT flex items-center justify-center text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors" title="FX">
+<span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+</button>
+<!-- Active 'Loops' Indicator in collapsed mode -->
+<div class="relative">
+<button class="w-9 h-9 rounded-DEFAULT flex items-center justify-center bg-[#111d3a] text-[#60a5fa] font-medium shadow-sm" title="Loops (Active)">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">loop</span>
+</button>
+<span class="absolute -right-1 top-1 w-2 h-2 rounded-full bg-[#60a5fa]"></span>
+</div>
+</div>
+</div>
+<!-- Strip Footer Icons -->
+<div class="flex flex-col items-center gap-2 w-full px-2">
+<button class="w-9 h-9 rounded-DEFAULT flex items-center justify-center text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors" title="Plugins">
+<span class="material-symbols-outlined text-[18px]">extension</span>
+</button>
+<button class="w-9 h-9 rounded-DEFAULT flex items-center justify-center text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors" title="Favorites">
+<span class="material-symbols-outlined text-[18px]">star</span>
+</button>
+<div class="w-6 h-[1px] bg-[#111d3a] my-1"></div>
+<button class="w-7 h-7 rounded-DEFAULT flex items-center justify-center text-[#64748b]" title="Collapsed Mode Info">
+<span class="font-mono text-[9px] uppercase tracking-tighter">60PX</span>
+</button>
+</div>
+</aside>
+<!-- EXPANDED SIDEBAR: ALPHA-BAND LOOP LIBRARY (280px wide) -->
+<aside class="w-[280px] h-full bg-[#0c1428] flex flex-col justify-between flex-shrink-0 z-40 shadow-md transition-all duration-200" id="expanded-sidebar">
+<!-- Top Section: Header, Search & Filter Tags, Tabs -->
+<div class="flex flex-col p-3 pb-1 gap-2.5">
+<!-- Header: Avatar/Icon, Library Title & Subtext -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-DEFAULT bg-[#111d3a] flex items-center justify-center text-[#60a5fa] shadow-sm">
+<span class="material-symbols-outlined text-[18px]">loop</span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-display font-semibold text-sm text-white leading-tight">Library</span>
+<span class="text-[10px] px-1.5 py-0.2 rounded-DEFAULT bg-[#60a5fa]/15 text-[#60a5fa] font-mono">1,420</span>
+</div>
+<p class="font-body text-[11px] text-[#94a3b8] leading-none mt-0.5">Browser &amp; Sampler</p>
+</div>
+</div>
+<button class="w-7 h-7 rounded-DEFAULT flex items-center justify-center text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors" title="Sync Cloud Library">
+<span class="material-symbols-outlined text-[16px]">sync</span>
+</button>
+</div>
+<!-- Search Bar -->
+<div class="relative w-full">
+<span class="material-symbols-outlined text-[#94a3b8] text-[16px] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">search</span>
+<input class="w-full bg-[#111d3a] text-xs text-white placeholder-[#64748b] pl-8 pr-7 py-1.5 rounded-DEFAULT border-none focus:ring-1 focus:ring-[#60a5fa] shadow-inner font-body transition-colors" placeholder="Search audio loops, keys..." type="text" value="Groove"/>
+<button class="absolute right-2 top-1/2 -translate-y-1/2 text-[#64748b] hover:text-[#94a3b8]">
+<span class="material-symbols-outlined text-[14px]">tune</span>
+</button>
+</div>
+<!-- Quick Filter Tags -->
+<div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none text-[10px] font-mono">
+<button class="px-2 py-0.5 rounded-DEFAULT bg-[#60a5fa]/20 text-[#60a5fa] whitespace-nowrap font-medium hover:bg-[#60a5fa]/30 transition-colors">
+            120-128 BPM
+          </button>
+<button class="px-2 py-0.5 rounded-DEFAULT bg-[#111d3a] text-[#94a3b8] whitespace-nowrap hover:text-white hover:bg-[#1a2a4a] transition-colors">
+            Minor
+          </button>
+<button class="px-2 py-0.5 rounded-DEFAULT bg-[#111d3a] text-[#94a3b8] whitespace-nowrap hover:text-white hover:bg-[#1a2a4a] transition-colors">
+            One-Shot
+          </button>
+<button class="px-2 py-0.5 rounded-DEFAULT bg-[#111d3a] text-[#94a3b8] whitespace-nowrap hover:text-white hover:bg-[#1a2a4a] transition-colors">
+            Melodic
+          </button>
+</div>
+<!-- Category Tabs (Shared Components: Drums, Bass, Synth, FX, Loops) -->
+<div class="grid grid-cols-5 gap-1 bg-[#111d3a] p-1 rounded-DEFAULT mt-0.5 text-center text-xs">
+<!-- Inactive Tab: Drums -->
+<button class="flex flex-col items-center py-1 rounded-DEFAULT text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors" title="Drums">
+<span class="material-symbols-outlined text-[16px]">album</span>
+<span class="text-[9px] mt-0.5">Drums</span>
+</button>
+<!-- Inactive Tab: Bass -->
+<button class="flex flex-col items-center py-1 rounded-DEFAULT text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors" title="Bass">
+<span class="material-symbols-outlined text-[16px]">graphic_eq</span>
+<span class="text-[9px] mt-0.5">Bass</span>
+</button>
+<!-- Inactive Tab: Synth -->
+<button class="flex flex-col items-center py-1 rounded-DEFAULT text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors" title="Synth">
+<span class="material-symbols-outlined text-[16px]">piano</span>
+<span class="text-[9px] mt-0.5">Synth</span>
+</button>
+<!-- Inactive Tab: FX -->
+<button class="flex flex-col items-center py-1 rounded-DEFAULT text-[#94a3b8] hover:text-white hover:bg-[#1a2a4a] transition-colors" title="FX">
+<span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+<span class="text-[9px] mt-0.5">FX</span>
+</button>
+<!-- Active Tab: Loops (Semantic match for Loop Library) -->
+<button class="flex flex-col items-center py-1 rounded-DEFAULT bg-[#0c1428] text-[#60a5fa] font-medium shadow-sm transition-colors" title="Loops">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">loop</span>
+<span class="text-[9px] mt-0.5">Loops</span>
+</button>
+</div>
+</div>
+<!-- Scrollable Loop Cards Feed (Asymmetric, Clean, No Harsh Borders) -->
+<div class="flex-1 overflow-y-auto px-3 py-1 space-y-2">
+<!-- Loop Item 1: Sub Heavy Groove 01 (Active Playing State with Blue Glow) -->
+<div class="group relative bg-[#0c1428] hover:bg-[#111d3a] p-2.5 rounded-lg shadow-sm inner-glow-blue transition-all duration-150 cursor-grab active:cursor-grabbing">
+<!-- Top Row: Drag handle, Play Button, Loop Title, Star -->
+<div class="flex items-center justify-between gap-1.5 mb-1.5">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="material-symbols-outlined text-[#64748b] group-hover:text-[#94a3b8] text-[16px] cursor-grab">drag_indicator</span>
+<!-- Active Play Preview Button -->
+<button class="w-6 h-6 rounded-DEFAULT bg-[#60a5fa] text-[#080e1a] flex items-center justify-center glow-blue active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">pause</span>
+</button>
+<div class="truncate">
+<h4 class="font-display text-xs font-semibold text-white truncate group-hover:text-[#60a5fa] transition-colors">Sub Heavy Groove 01</h4>
+<span class="text-[10px] text-[#94a3b8] font-body block leading-none">Club Tech Bass</span>
+</div>
+</div>
+<!-- Favorite & Context -->
+<div class="flex items-center gap-0.5 flex-shrink-0">
+<button class="text-[#fbbf24] hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</button>
+<button class="text-[#64748b] hover:text-white">
+<span class="material-symbols-outlined text-[15px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Mini SVG Audio Waveform Graphic (Neon Cyan/Blue with Playing Head) -->
+<div class="relative w-full h-7 bg-[#080e1a] rounded-DEFAULT overflow-hidden px-1.5 flex items-center mb-2">
+<!-- Simulated Waveform Bars -->
+<div class="w-full flex items-center justify-between gap-[2px] h-full py-1">
+<div class="w-[3px] h-[35%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[65%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[90%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[45%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[75%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[100%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[80%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[60%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[95%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[70%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[50%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[85%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[65%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[40%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[75%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[90%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[60%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[30%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[80%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[55%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[35%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[65%] bg-[#60a5fa] rounded-full"></div>
+</div>
+<!-- Glowing Playhead Marker -->
+<div class="absolute left-[45%] top-0 bottom-0 w-[2px] bg-white shadow-[0_0_8px_#ffffff]"></div>
+</div>
+<!-- Loop Metadata Badges -->
+<div class="flex items-center justify-between text-[10px] font-mono">
+<div class="flex items-center gap-1.5">
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-[#111d3a] text-[#60a5fa] font-medium">124 BPM</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-[#111d3a] text-[#f472b6]">F# min</span>
+</div>
+<div class="flex items-center gap-1 text-[#94a3b8]">
+<span>4 Bars</span>
+<span>•</span>
+<span>0:08</span>
+</div>
+</div>
+</div>
+<!-- Loop Item 2: Neon Cyber Pluck -->
+<div class="group relative bg-[#0c1428] hover:bg-[#111d3a] p-2.5 rounded-lg shadow-sm inner-glow-blue transition-all duration-150 cursor-grab active:cursor-grabbing">
+<div class="flex items-center justify-between gap-1.5 mb-1.5">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="material-symbols-outlined text-[#64748b] group-hover:text-[#94a3b8] text-[16px]">drag_indicator</span>
+<button class="w-6 h-6 rounded-DEFAULT bg-[#111d3a] group-hover:bg-[#1a2a4a] text-[#94a3b8] group-hover:text-white flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<div class="truncate">
+<h4 class="font-display text-xs font-semibold text-white truncate group-hover:text-[#60a5fa] transition-colors">Neon Cyber Pluck</h4>
+<span class="text-[10px] text-[#94a3b8] font-body block leading-none">Modular Lead Synth</span>
+</div>
+</div>
+<div class="flex items-center gap-0.5 flex-shrink-0">
+<button class="text-[#64748b] hover:text-[#fbbf24] transition-colors">
+<span class="material-symbols-outlined text-[15px]">star</span>
+</button>
+<button class="text-[#64748b] hover:text-white">
+<span class="material-symbols-outlined text-[15px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Waveform SVG: Neon Pink/Purple Accent -->
+<div class="relative w-full h-7 bg-[#080e1a] rounded-DEFAULT overflow-hidden px-1.5 flex items-center mb-2">
+<div class="w-full flex items-center justify-between gap-[2px] h-full py-1">
+<div class="w-[3px] h-[20%] bg-[#f472b6] rounded-full opacity-70"></div>
+<div class="w-[3px] h-[50%] bg-[#f472b6] rounded-full opacity-75"></div>
+<div class="w-[3px] h-[80%] bg-[#f472b6] rounded-full opacity-90"></div>
+<div class="w-[3px] h-[95%] bg-[#f472b6] rounded-full"></div>
+<div class="w-[3px] h-[40%] bg-[#f472b6] rounded-full opacity-70"></div>
+<div class="w-[3px] h-[60%] bg-[#f472b6] rounded-full opacity-80"></div>
+<div class="w-[3px] h-[90%] bg-[#f472b6] rounded-full"></div>
+<div class="w-[3px] h-[40%] bg-[#f472b6] rounded-full opacity-70"></div>
+<div class="w-[3px] h-[85%] bg-[#f472b6] rounded-full"></div>
+<div class="w-[3px] h-[60%] bg-[#f472b6] rounded-full opacity-80"></div>
+<div class="w-[3px] h-[75%] bg-[#f472b6] rounded-full"></div>
+<div class="w-[3px] h-[30%] bg-[#f472b6] rounded-full opacity-60"></div>
+<div class="w-[3px] h-[90%] bg-[#f472b6] rounded-full"></div>
+<div class="w-[3px] h-[70%] bg-[#f472b6] rounded-full"></div>
+<div class="w-[3px] h-[45%] bg-[#f472b6] rounded-full opacity-70"></div>
+<div class="w-[3px] h-[80%] bg-[#f472b6] rounded-full"></div>
+<div class="w-[3px] h-[35%] bg-[#f472b6] rounded-full opacity-60"></div>
+<div class="w-[3px] h-[65%] bg-[#f472b6] rounded-full opacity-80"></div>
+<div class="w-[3px] h-[90%] bg-[#f472b6] rounded-full"></div>
+<div class="w-[3px] h-[50%] bg-[#f472b6] rounded-full opacity-75"></div>
+<div class="w-[3px] h-[30%] bg-[#f472b6] rounded-full opacity-60"></div>
+<div class="w-[3px] h-[15%] bg-[#f472b6] rounded-full opacity-50"></div>
+</div>
+</div>
+<div class="flex items-center justify-between text-[10px] font-mono">
+<div class="flex items-center gap-1.5">
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-[#111d3a] text-[#60a5fa] font-medium">126 BPM</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-[#111d3a] text-[#f472b6]">D min</span>
+</div>
+<div class="flex items-center gap-1 text-[#94a3b8]">
+<span>8 Bars</span>
+<span>•</span>
+<span>0:15</span>
+</div>
+</div>
+</div>
+<!-- Loop Item 3: Analog Acid Bassline -->
+<div class="group relative bg-[#0c1428] hover:bg-[#111d3a] p-2.5 rounded-lg shadow-sm inner-glow-blue transition-all duration-150 cursor-grab active:cursor-grabbing">
+<div class="flex items-center justify-between gap-1.5 mb-1.5">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="material-symbols-outlined text-[#64748b] group-hover:text-[#94a3b8] text-[16px]">drag_indicator</span>
+<button class="w-6 h-6 rounded-DEFAULT bg-[#111d3a] group-hover:bg-[#1a2a4a] text-[#94a3b8] group-hover:text-white flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<div class="truncate">
+<h4 class="font-display text-xs font-semibold text-white truncate group-hover:text-[#60a5fa] transition-colors">Analog Acid Bassline</h4>
+<span class="text-[10px] text-[#94a3b8] font-body block leading-none">303 Resonant Filter</span>
+</div>
+</div>
+<div class="flex items-center gap-0.5 flex-shrink-0">
+<button class="text-[#fbbf24] hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">star</span>
+</button>
+<button class="text-[#64748b] hover:text-white">
+<span class="material-symbols-outlined text-[15px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Waveform SVG: Neon Cyan Wave -->
+<div class="relative w-full h-7 bg-[#080e1a] rounded-DEFAULT overflow-hidden px-1.5 flex items-center mb-2">
+<div class="w-full flex items-center justify-between gap-[2px] h-full py-1">
+<div class="w-[3px] h-[40%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[80%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[100%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[60%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[90%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[75%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[50%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[95%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[40%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[85%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[70%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[95%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[55%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[80%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[45%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[90%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[65%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[35%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[75%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[60%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[30%] bg-[#34d399] rounded-full"></div>
+<div class="w-[3px] h-[20%] bg-[#34d399] rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center justify-between text-[10px] font-mono">
+<div class="flex items-center gap-1.5">
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-[#111d3a] text-[#60a5fa] font-medium">128 BPM</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-[#111d3a] text-[#f472b6]">C maj</span>
+</div>
+<div class="flex items-center gap-1 text-[#94a3b8]">
+<span>4 Bars</span>
+<span>•</span>
+<span>0:07</span>
+</div>
+</div>
+</div>
+<!-- Loop Item 4: Vocal Chop Atmosphere -->
+<div class="group relative bg-[#0c1428] hover:bg-[#111d3a] p-2.5 rounded-lg shadow-sm inner-glow-blue transition-all duration-150 cursor-grab active:cursor-grabbing">
+<div class="flex items-center justify-between gap-1.5 mb-1.5">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="material-symbols-outlined text-[#64748b] group-hover:text-[#94a3b8] text-[16px]">drag_indicator</span>
+<button class="w-6 h-6 rounded-DEFAULT bg-[#111d3a] group-hover:bg-[#1a2a4a] text-[#94a3b8] group-hover:text-white flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<div class="truncate">
+<h4 class="font-display text-xs font-semibold text-white truncate group-hover:text-[#60a5fa] transition-colors">Vocal Chop Atmosphere</h4>
+<span class="text-[10px] text-[#94a3b8] font-body block leading-none">Reverb Ethereal FX</span>
+</div>
+</div>
+<div class="flex items-center gap-0.5 flex-shrink-0">
+<button class="text-[#64748b] hover:text-[#fbbf24] transition-colors">
+<span class="material-symbols-outlined text-[15px]">star</span>
+</button>
+<button class="text-[#64748b] hover:text-white">
+<span class="material-symbols-outlined text-[15px]">more_vert</span>
+</button>
+</div>
+</div>
+<div class="relative w-full h-7 bg-[#080e1a] rounded-DEFAULT overflow-hidden px-1.5 flex items-center mb-2">
+<div class="w-full flex items-center justify-between gap-[2px] h-full py-1">
+<div class="w-[3px] h-[15%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[35%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[60%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[45%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[75%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[90%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[55%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[40%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[85%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[95%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[70%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[50%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[85%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[65%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[40%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[60%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[35%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[55%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[75%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[45%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[25%] bg-[#60a5fa] rounded-full"></div>
+<div class="w-[3px] h-[10%] bg-[#60a5fa] rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center justify-between text-[10px] font-mono">
+<div class="flex items-center gap-1.5">
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-[#111d3a] text-[#60a5fa] font-medium">122 BPM</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-[#111d3a] text-[#f472b6]">A min</span>
+</div>
+<div class="flex items-center gap-1 text-[#94a3b8]">
+<span>8 Bars</span>
+<span>•</span>
+<span>0:16</span>
+</div>
+</div>
+</div>
+<!-- Loop Item 5: Punchy 808 Drive -->
+<div class="group relative bg-[#0c1428] hover:bg-[#111d3a] p-2.5 rounded-lg shadow-sm inner-glow-blue transition-all duration-150 cursor-grab active:cursor-grabbing">
+<div class="flex items-center justify-between gap-1.5 mb-1.5">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="material-symbols-outlined text-[#64748b] group-hover:text-[#94a3b8] text-[16px]">drag_indicator</span>
+<button class="w-6 h-6 rounded-DEFAULT bg-[#111d3a] group-hover:bg-[#1a2a4a] text-[#94a3b8] group-hover:text-white flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<div class="truncate">
+<h4 class="font-display text-xs font-semibold text-white truncate group-hover:text-[#60a5fa] transition-colors">Punchy 808 Drive</h4>
+<span class="text-[10px] text-[#94a3b8] font-body block leading-none">Distorted Sub Bass</span>
+</div>
+</div>
+<div class="flex items-center gap-0.5 flex-shrink-0">
+<button class="text-[#64748b] hover:text-[#fbbf24] transition-colors">
+<span class="material-symbols-outlined text-[15px]">star</span>
+</button>
+<button class="text-[#64748b] hover:text-white">
+<span class="material-symbols-outlined text-[15px]">more_vert</span>
+</button>
+</div>
+</div>
+<div class="relative w-full h-7 bg-[#080e1a] rounded-DEFAULT overflow-hidden px-1.5 flex items-center mb-2">
+<div class="w-full flex items-center justify-between gap-[2px] h-full py-1">
+<div class="w-[3px] h-[95%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[85%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[65%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[50%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[35%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[25%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[100%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[75%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[55%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[40%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[30%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[85%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[70%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[50%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[35%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[95%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[75%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[50%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[30%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[80%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[55%] bg-[#fbbf24] rounded-full"></div>
+<div class="w-[3px] h-[35%] bg-[#fbbf24] rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center justify-between text-[10px] font-mono">
+<div class="flex items-center gap-1.5">
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-[#111d3a] text-[#60a5fa] font-medium">130 BPM</span>
+<span class="px-1.5 py-0.5 rounded-DEFAULT bg-[#111d3a] text-[#f472b6]">G min</span>
+</div>
+<div class="flex items-center gap-1 text-[#94a3b8]">
+<span>2 Bars</span>
+<span>•</span>
+<span>0:04</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Sticky CTA & Footer Nav (Shared Component: CTA="Import Sample", Footer Tabs="Plugins", "Favorites") -->
+<div class="p-3 bg-[#0c1428] flex flex-col gap-2 shadow-md">
+<!-- CTA: Import Sample -->
+<button class="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-DEFAULT bg-[#111d3a] hover:bg-[#1a2a4a] text-[#60a5fa] text-xs font-semibold hover:text-white active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined text-[16px]">add_circle</span>
+<span>Import Sample</span>
+</button>
+<!-- Footer Tab Links (Plugins & Favorites) -->
+<div class="flex items-center justify-between pt-1 font-body text-xs text-[#94a3b8]">
+<button class="flex items-center gap-2 px-2 py-1.5 rounded-DEFAULT hover:bg-[#1a2a4a] hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[16px]">extension</span>
+<span class="text-xs">Plugins</span>
+</button>
+<button class="flex items-center gap-2 px-2 py-1.5 rounded-DEFAULT hover:bg-[#1a2a4a] hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[16px]">star</span>
+<span class="text-xs">Favorites</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- MAIN DAW CANVAS / TIMELINE BACKDROP (Integrated Production Workstation) -->
+<main class="flex-1 flex flex-col bg-[#080e1a] overflow-hidden min-w-0">
+<!-- Arrange View Header Bar (Ruler, Quantize, Snapping Tools) -->
+<div class="h-10 bg-[#0c1428] flex items-center justify-between px-4 select-none shadow-sm flex-shrink-0">
+<!-- Track View Tools -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1 bg-[#111d3a] p-1 rounded-DEFAULT">
+<button class="p-1 rounded-DEFAULT text-[#60a5fa] bg-[#0c1428]" title="Arrow Tool">
+<span class="material-symbols-outlined text-[15px]">arrow_selector_tool</span>
+</button>
+<button class="p-1 rounded-DEFAULT text-[#94a3b8] hover:text-white" title="Split Razor Tool">
+<span class="material-symbols-outlined text-[15px]">content_cut</span>
+</button>
+<button class="p-1 rounded-DEFAULT text-[#94a3b8] hover:text-white" title="Pencil / Automation Tool">
+<span class="material-symbols-outlined text-[15px]">edit</span>
+</button>
+<button class="p-1 rounded-DEFAULT text-[#94a3b8] hover:text-white" title="Eraser Tool">
+<span class="material-symbols-outlined text-[15px]">ink_eraser</span>
+</button>
+</div>
+<div class="h-4 w-[1px] bg-[#111d3a]"></div>
+<div class="flex items-center gap-2 text-xs font-mono text-[#94a3b8]">
+<span>SNAP:</span>
+<button class="bg-[#111d3a] text-white px-2 py-0.5 rounded-DEFAULT hover:bg-[#1a2a4a]">1/16</button>
+<span>QUANTIZE:</span>
+<button class="bg-[#111d3a] text-white px-2 py-0.5 rounded-DEFAULT hover:bg-[#1a2a4a]">100%</button>
+</div>
+</div>
+<!-- Master Volume Meter & Automation Status -->
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-xs font-mono">
+<span class="text-[#94a3b8]">MASTER:</span>
+<span class="text-[#34d399] font-semibold">-0.4 dB</span>
+<div class="w-20 h-2 bg-[#111d3a] rounded-full overflow-hidden flex">
+<div class="w-[75%] bg-[#34d399]"></div>
+<div class="w-[12%] bg-[#fbbf24]"></div>
+<div class="w-[0%] bg-[#f87171]"></div>
+</div>
+</div>
+<button class="px-2.5 py-1 rounded-DEFAULT bg-[#111d3a] hover:bg-[#1a2a4a] text-xs font-medium text-white flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[14px]">tune</span>
+<span>Master FX</span>
+</button>
+</div>
+</div>
+<!-- Timeline Ruler Bar (Bars 1 to 48) -->
+<div class="h-6 bg-[#111d3a] flex items-center select-none font-mono text-[10px] text-[#94a3b8] flex-shrink-0">
+<!-- Left spacer matching track headers width (200px) -->
+<div class="w-[200px] flex-shrink-0 px-3 flex items-center justify-between text-[#64748b]">
+<span>TRACK HEADERS</span>
+<span class="material-symbols-outlined text-[14px]">unfold_more</span>
+</div>
+<!-- Ruler markers -->
+<div class="flex-1 flex justify-between px-3 overflow-hidden">
+<span>01.1</span>
+<span>05.1</span>
+<span>09.1</span>
+<span>13.1</span>
+<span class="text-[#60a5fa] font-bold">17.1 [HOOK]</span>
+<span>21.1</span>
+<span>25.1</span>
+<span class="text-[#f472b6] font-bold">29.1 [DROP]</span>
+<span>33.1</span>
+<span>37.1</span>
+<span>41.1</span>
+</div>
+</div>
+<!-- DAW Track Rows & Waveform Arrangements View -->
+<div class="flex-1 overflow-y-auto flex flex-col relative select-none">
+<!-- Continuous Vertical Playhead Cursor across DAW -->
+<div class="absolute left-[480px] top-0 bottom-0 w-[1px] bg-[#60a5fa] z-20 pointer-events-none shadow-[0_0_8px_#60a5fa]">
+<div class="w-3 h-2 bg-[#60a5fa] -ml-[5.5px] rounded-b-sm"></div>
+</div>
+<!-- TRACK 1: Kick & Sub Beats -->
+<div class="h-20 flex bg-[#0c1428] hover:bg-[#101a33] transition-colors">
+<!-- Track Control Header (200px) -->
+<div class="w-[200px] flex-shrink-0 bg-[#0c1428] p-2 flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-2.5 h-2.5 rounded-full bg-[#f472b6]"></div>
+<span class="font-display text-xs font-semibold text-white">01 Kick &amp; 808</span>
+</div>
+<span class="text-[10px] font-mono text-[#94a3b8]">AUDIO</span>
+</div>
+<!-- Mute, Solo, Record, Volume Slider -->
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-1 font-mono text-[10px]">
+<button class="w-5 h-5 rounded-DEFAULT bg-[#111d3a] hover:bg-[#1a2a4a] text-[#94a3b8] flex items-center justify-center font-bold">M</button>
+<button class="w-5 h-5 rounded-DEFAULT bg-[#fbbf24]/20 text-[#fbbf24] flex items-center justify-center font-bold">S</button>
+<button class="w-5 h-5 rounded-DEFAULT bg-[#f472b6]/20 text-[#f472b6] flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1;">circle</span>
+</button>
+</div>
+<div class="flex items-center gap-1.5 font-mono text-[10px] text-[#94a3b8]">
+<span>-2.1dB</span>
+<div class="w-12 h-1 bg-[#111d3a] rounded-full overflow-hidden">
+<div class="w-[65%] h-full bg-[#60a5fa]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Timeline Audio Region Clips -->
+<div class="flex-1 relative bg-[#080e1a]/80 p-1 flex items-center gap-2">
+<!-- Audio Clip 1 -->
+<div class="absolute left-10 w-[240px] h-16 bg-[#111d3a] rounded-DEFAULT p-2 flex flex-col justify-between shadow-sm overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-mono text-white font-medium truncate">Sub Heavy Groove 01 [Sample]</span>
+<span class="text-[9px] font-mono text-[#60a5fa]">124 BPM</span>
+</div>
+<!-- Waveform Path Graphic -->
+<div class="w-full h-8 flex items-center gap-0.5">
+<div class="w-1 h-3 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-5 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-7 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-4 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-8 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-6 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-4 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-7 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-5 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-8 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-6 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-3 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-7 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-5 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-8 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-4 bg-[#60a5fa] rounded-full"></div>
+</div>
+</div>
+<!-- Audio Clip 2 (Repeated Loop) -->
+<div class="absolute left-[300px] w-[240px] h-16 bg-[#111d3a] rounded-DEFAULT p-2 flex flex-col justify-between shadow-sm overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-mono text-white font-medium truncate">Sub Heavy Groove 01 (Copy)</span>
+<span class="text-[9px] font-mono text-[#60a5fa]">124 BPM</span>
+</div>
+<div class="w-full h-8 flex items-center gap-0.5">
+<div class="w-1 h-3 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-5 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-7 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-4 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-8 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-6 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-4 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-7 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-5 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-8 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-6 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-3 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-7 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-5 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-8 bg-[#60a5fa] rounded-full"></div>
+<div class="w-1 h-4 bg-[#60a5fa] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- TRACK 2: Main Acid Synth -->
+<div class="h-20 flex bg-[#0c1428] hover:bg-[#101a33] transition-colors mt-0.5">
+<div class="w-[200px] flex-shrink-0 bg-[#0c1428] p-2 flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-2.5 h-2.5 rounded-full bg-[#34d399]"></div>
+<span class="font-display text-xs font-semibold text-white">02 Acid 303 Lead</span>
+</div>
+<span class="text-[10px] font-mono text-[#94a3b8]">MIDI</span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-1 font-mono text-[10px]">
+<button class="w-5 h-5 rounded-DEFAULT bg-[#111d3a] hover:bg-[#1a2a4a] text-[#94a3b8] flex items-center justify-center font-bold">M</button>
+<button class="w-5 h-5 rounded-DEFAULT bg-[#111d3a] hover:bg-[#1a2a4a] text-[#94a3b8] flex items-center justify-center font-bold">S</button>
+<button class="w-5 h-5 rounded-DEFAULT bg-[#111d3a] hover:bg-[#1a2a4a] text-[#94a3b8] flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px]">circle</span>
+</button>
+</div>
+<div class="flex items-center gap-1.5 font-mono text-[10px] text-[#94a3b8]">
+<span>-4.8dB</span>
+<div class="w-12 h-1 bg-[#111d3a] rounded-full overflow-hidden">
+<div class="w-[50%] h-full bg-[#34d399]"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex-1 relative bg-[#080e1a]/80 p-1 flex items-center gap-2">
+<!-- Synth Midi Clip -->
+<div class="absolute left-[180px] w-[360px] h-16 bg-[#111d3a]/90 rounded-DEFAULT p-2 flex flex-col justify-between shadow-sm overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-mono text-[#34d399] font-medium truncate">Analog Acid Bassline [Pattern]</span>
+<span class="text-[9px] font-mono text-[#94a3b8]">C maj • 8 Bars</span>
+</div>
+<!-- Simulated Piano Roll Notes in Timeline Clip -->
+<div class="w-full h-8 relative bg-[#080e1a]/60 rounded-DEFAULT p-1 flex items-center gap-1.5 overflow-hidden">
+<div class="w-6 h-2 bg-[#34d399] rounded-sm self-start"></div>
+<div class="w-8 h-2 bg-[#34d399] rounded-sm self-center"></div>
+<div class="w-4 h-2 bg-[#34d399] rounded-sm self-end"></div>
+<div class="w-10 h-2 bg-[#34d399] rounded-sm self-center"></div>
+<div class="w-6 h-2 bg-[#34d399] rounded-sm self-start"></div>
+<div class="w-12 h-2 bg-[#34d399] rounded-sm self-end"></div>
+<div class="w-8 h-2 bg-[#34d399] rounded-sm self-start"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- TRACK 3: Cyber Pluck Arp -->
+<div class="h-20 flex bg-[#0c1428] hover:bg-[#101a33] transition-colors mt-0.5">
+<div class="w-[200px] flex-shrink-0 bg-[#0c1428] p-2 flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-2.5 h-2.5 rounded-full bg-[#60a5fa]"></div>
+<span class="font-display text-xs font-semibold text-white">03 Cyber Pluck Arp</span>
+</div>
+<span class="text-[10px] font-mono text-[#94a3b8]">INST</span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-1 font-mono text-[10px]">
+<button class="w-5 h-5 rounded-DEFAULT bg-[#111d3a] hover:bg-[#1a2a4a] text-[#94a3b8] flex items-center justify-center font-bold">M</button>
+<button class="w-5 h-5 rounded-DEFAULT bg-[#111d3a] hover:bg-[#1a2a4a] text-[#94a3b8] flex items-center justify-center font-bold">S</button>
+<button class="w-5 h-5 rounded-DEFAULT bg-[#111d3a] hover:bg-[#1a2a4a] text-[#94a3b8] flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px]">circle</span>
+</button>
+</div>
+<div class="flex items-center gap-1.5 font-mono text-[10px] text-[#94a3b8]">
+<span>-6.0dB</span>
+<div class="w-12 h-1 bg-[#111d3a] rounded-full overflow-hidden">
+<div class="w-[42%] h-full bg-[#60a5fa]"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex-1 relative bg-[#080e1a]/80 p-1 flex items-center gap-2">
+<!-- Pluck Audio Clip -->
+<div class="absolute left-[360px] w-[280px] h-16 bg-[#111d3a] rounded-DEFAULT p-2 flex flex-col justify-between shadow-sm overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-mono text-[#f472b6] font-medium truncate">Neon Cyber Pluck 126BPM</span>
+<span class="text-[9px] font-mono text-[#94a3b8]">D min</span>
+</div>
+<div class="w-full h-8 flex items-center gap-0.5">
+<div class="w-1 h-6 bg-[#f472b6] rounded-full"></div>
+<div class="w-1 h-3 bg-[#f472b6] rounded-full"></div>
+<div class="w-1 h-8 bg-[#f472b6] rounded-full"></div>
+<div class="w-1 h-4 bg-[#f472b6] rounded-full"></div>
+<div class="w-1 h-7 bg-[#f472b6] rounded-full"></div>
+<div class="w-1 h-5 bg-[#f472b6] rounded-full"></div>
+<div class="w-1 h-8 bg-[#f472b6] rounded-full"></div>
+<div class="w-1 h-3 bg-[#f472b6] rounded-full"></div>
+<div class="w-1 h-6 bg-[#f472b6] rounded-full"></div>
+<div class="w-1 h-8 bg-[#f472b6] rounded-full"></div>
+<div class="w-1 h-4 bg-[#f472b6] rounded-full"></div>
+<div class="w-1 h-7 bg-[#f472b6] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- TRACK 4: Vocal Textures & Atmosphere FX -->
+<div class="h-20 flex bg-[#0c1428] hover:bg-[#101a33] transition-colors mt-0.5">
+<div class="w-[200px] flex-shrink-0 bg-[#0c1428] p-2 flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-2.5 h-2.5 rounded-full bg-[#fbbf24]"></div>
+<span class="font-display text-xs font-semibold text-white">04 Vocal Chops</span>
+</div>
+<span class="text-[10px] font-mono text-[#94a3b8]">FX BUS</span>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-1 font-mono text-[10px]">
+<button class="w-5 h-5 rounded-DEFAULT bg-[#111d3a] hover:bg-[#1a2a4a] text-[#94a3b8] flex items-center justify-center font-bold">M</button>
+<button class="w-5 h-5 rounded-DEFAULT bg-[#111d3a] hover:bg-[#1a2a4a] text-[#94a3b8] flex items-center justify-center font-bold">S</button>
+<button class="w-5 h-5 rounded-DEFAULT bg-[#111d3a] hover:bg-[#1a2a4a] text-[#94a3b8] flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px]">circle</span>
+</button>
+</div>
+<div class="flex items-center gap-1.5 font-mono text-[10px] text-[#94a3b8]">
+<span>-8.4dB</span>
+<div class="w-12 h-1 bg-[#111d3a] rounded-full overflow-hidden">
+<div class="w-[30%] h-full bg-[#fbbf24]"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex-1 relative bg-[#080e1a]/80 p-1 flex items-center gap-2">
+<!-- Drop Target Hint: Demonstrates Drag-and-Drop Workflow from Sidebar -->
+<div class="absolute left-[120px] w-[320px] h-16 border border-dashed border-[#60a5fa]/40 bg-[#60a5fa]/5 rounded-DEFAULT p-2 flex items-center justify-center gap-2 text-xs font-mono text-[#60a5fa]">
+<span class="material-symbols-outlined text-[18px]">drag_pan</span>
+<span>Drop 'Vocal Chop Atmosphere' here to place on Track 4</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom DAW Panel (Mini Mixer / Channel Inspector Dock) -->
+<div class="h-28 bg-[#0c1428] flex items-center justify-between px-4 select-none shadow-md flex-shrink-0">
+<!-- Inspector Details for Active Loop/Track -->
+<div class="flex items-center gap-6">
+<div class="flex flex-col">
+<span class="font-mono text-[10px] text-[#94a3b8] uppercase">Selected Sound Clip</span>
+<span class="font-display text-sm font-semibold text-white">Sub Heavy Groove 01.wav</span>
+<span class="text-[11px] text-[#60a5fa] font-mono mt-0.5">24-bit • 44.1 kHz • Stereo Lossless</span>
+</div>
+<div class="h-14 w-[1px] bg-[#111d3a]"></div>
+<!-- Quick FX Knobs (Drive, Filter, Reverb, Width) -->
+<div class="flex items-center gap-5 font-mono text-center">
+<!-- Knob 1: Cutoff -->
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-[#111d3a] flex items-center justify-center relative cursor-ns-resize shadow-sm">
+<div class="w-1 h-3 bg-[#60a5fa] rounded-full absolute top-1"></div>
+<span class="text-[9px] text-[#94a3b8]">2.4k</span>
+</div>
+<span class="text-[9px] text-[#94a3b8] mt-1">CUTOFF</span>
+</div>
+<!-- Knob 2: Resonance -->
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-[#111d3a] flex items-center justify-center relative cursor-ns-resize shadow-sm">
+<div class="w-1 h-3 bg-[#f472b6] rounded-full absolute top-1 rotate-45"></div>
+<span class="text-[9px] text-[#94a3b8]">42%</span>
+</div>
+<span class="text-[9px] text-[#94a3b8] mt-1">RES</span>
+</div>
+<!-- Knob 3: Drive -->
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-[#111d3a] flex items-center justify-center relative cursor-ns-resize shadow-sm">
+<div class="w-1 h-3 bg-[#34d399] rounded-full absolute top-1 -rotate-45"></div>
+<span class="text-[9px] text-[#94a3b8]">18%</span>
+</div>
+<span class="text-[9px] text-[#94a3b8] mt-1">DRIVE</span>
+</div>
+<!-- Knob 4: Reverb -->
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-[#111d3a] flex items-center justify-center relative cursor-ns-resize shadow-sm">
+<div class="w-1 h-3 bg-[#60a5fa] rounded-full absolute top-1 rotate-90"></div>
+<span class="text-[9px] text-[#94a3b8]">65%</span>
+</div>
+<span class="text-[9px] text-[#94a3b8] mt-1">REVERB</span>
+</div>
+</div>
+</div>
+<!-- System CPU / Audio Engine Status -->
+<div class="flex items-center gap-4 text-xs font-mono text-[#94a3b8]">
+<div class="flex flex-col text-right">
+<span class="text-[10px]">DSP BUFFER: 128 SPLS</span>
+<span class="text-[#34d399] font-medium">AUDIO ENGINE ONLINE (4.2 ms)</span>
+</div>
+<div class="flex items-center gap-1.5 bg-[#111d3a] px-3 py-1.5 rounded-DEFAULT text-white">
+<span class="material-symbols-outlined text-[#34d399] text-[16px]">memory</span>
+<span>CPU 14%</span>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Micro-Interactions Script: Toggle Sidebar collapse/expand demonstration -->
+<script>
+    const toggleBtn = document.getElementById('toggle-sidebar-btn');
+    const expandedSidebar = document.getElementById('expanded-sidebar');
+
+    if (toggleBtn && expandedSidebar) {
+      toggleBtn.addEventListener('click', () => {
+        if (expandedSidebar.classList.contains('hidden')) {
+          expandedSidebar.classList.remove('hidden');
+          toggleBtn.classList.add('text-[#60a5fa]');
+          toggleBtn.classList.remove('text-[#94a3b8]');
+        } else {
+          expandedSidebar.classList.add('hidden');
+          toggleBtn.classList.remove('text-[#60a5fa]');
+          toggleBtn.classList.add('text-[#94a3b8]');
+        }
+      });
+    }
+  </script>
+</body></html>

@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ALPHA-Band DAW Workspace</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Public+Sans:wght@500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            daw: {
+              bg: '#080e1a',
+              surface: '#0c1428',
+              elevated: '#111d3a',
+              hover: '#1a2a4a',
+              primary: '#60a5fa',
+              accent: '#f472b6',
+              emerald: '#34d399',
+              amber: '#fbbf24',
+              rose: '#f87171',
+              muted: '#94a3b8',
+              dim: '#64748b'
+            }
+          },
+          borderRadius: {
+            "DEFAULT": "0.125rem",
+            "sm": "0.25rem",
+            "md": "0.5rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          fontFamily: {
+            headline: ["Inter", "sans-serif"],
+            display: ["Inter", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+            label: ["Public Sans", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    /* Custom DAW styles */
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      user-select: none;
+    }
+    .material-symbols-outlined.fill-icon {
+      font-variation-settings: 'FILL' 1;
+    }
+    
+    /* Playhead glowing line */
+    .playhead-line {
+      box-shadow: 0 0 10px rgba(96, 165, 250, 0.8), 0 0 20px rgba(96, 165, 250, 0.4);
+    }
+    
+    /* Scrollbars customized */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080e1a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #111d3a;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #1a2a4a;
+    }
+
+    /* Grid background simulation */
+    .timeline-grid {
+      background-size: 120px 100%;
+      background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+    .timeline-subgrid {
+      background-size: 30px 100%;
+      background-image: linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    }
+
+    /* Drag preview */
+    .drag-preview {
+      opacity: 0.8;
+      transform: rotate(3deg);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+</style></head>
+<body class="font-body text-daw-muted bg-daw-bg min-h-screen overflow-hidden">
+<div class="flex h-screen w-full flex-col">
+  <!-- TOP TRANSPORT BAR -->
+  <header class="flex h-[72px] shrink-0 items-center gap-4 border-b border-white/5 bg-daw-surface px-4 shadow-lg z-20">
+    <!-- Brand & Project -->
+    <div class="flex items-center gap-3">
+      <span class="font-headline text-xl font-bold text-white tracking-tight">ALPHA-Band</span>
+      <span class="hidden sm:block px-2 py-0.5 text-xs font-label text-daw-dim bg-daw-elevated rounded-sm border border-white/5">Midnight Horizon</span>
+    </div>
+    
+    <!-- BPM & Tap Tempo -->
+    <div class="flex items-center gap-2 ml-4 border-l border-white/5 pl-4">
+      <button class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-mono text-daw-primary bg-daw-bg hover:bg-daw-hover rounded-md transition-colors" title="Tap Tempo">
+        <span class="material-symbols-outlined text-base">tap_and_play</span>
+        <span>TAP</span>
+      </button>
+      <div class="flex items-center gap-1 bg-daw-bg rounded-md px-3 py-1.5">
+        <span class="font-mono text-lg font-semibold text-white w-[7ch] text-right" id="bpmDisplay">124.00</span>
+        <span class="font-mono text-sm text-daw-dim">BPM</span>
+      </div>
+      <button class="p-1.5 text-daw-dim hover:text-daw-primary transition-colors" title="Nudge Down">
+        <span class="material-symbols-outlined">remove</span>
+      </button>
+      <button class="p-1.5 text-daw-dim hover:text-daw-primary transition-colors" title="Nudge Up">
+        <span class="material-symbols-outlined">add</span>
+      </button>
+    </div>
+    
+    <!-- Signature & Quantize -->
+    <div class="flex items-center gap-2 border-l border-white/5 pl-4">
+      <div class="flex items-center gap-1 px-2 py-1 text-xs font-label text-daw-dim bg-daw-bg rounded-sm">
+        <span class="material-symbols-outlined text-sm">music_note</span>
+        <span>F min</span>
+      </div>
+      <select class="px-2 py-1 text-xs font-label text-white bg-daw-bg border border-white/10 rounded-sm focus:border-daw-primary focus:outline-none">
+        <option value="16">1/16</option>
+        <option value="8">1/8</option>
+        <option value="4">1/4</option>
+      </select>
+    </div>
+    
+    <!-- Transport Controls -->
+    <div class="flex items-center gap-1 ml-auto mr-4">
+      <button class="p-2 text-daw-dim hover:text-daw-primary transition-colors" title="Go to Start">
+        <span class="material-symbols-outlined">skip_previous</span>
+      </button>
+      <button class="p-2 text-daw-dim hover:text-daw-primary transition-colors" title="Rewind">
+        <span class="material-symbols-outlined">fast_rewind</span>
+      </button>
+      <button id="playBtn" class="flex h-12 w-12 items-center justify-center rounded-full bg-daw-emerald text-daw-bg shadow-[0_0_20px_rgba(52,211,153,0.5)] hover:shadow-[0_0_30px_rgba(52,211,153,0.7)] transition-all" title="Play">
+        <span class="material-symbols-outlined fill-icon text-xl" id="playIcon">play_arrow</span>
+      </button>
+      <button class="p-2 text-daw-dim hover:text-daw-rose transition-colors" title="Stop">
+        <span class="material-symbols-outlined">stop</span>
+      </button>
+      <button id="recordBtn" class="flex h-12 w-12 items-center justify-center rounded-full bg-daw-bg border-2 border-daw-accent text-daw-accent hover:bg-daw-accent/10 hover:shadow-[0_0_20px_rgba(244,114,182,0.5)] transition-all" title="Record">
+        <span class="material-symbols-outlined fill-icon text-xl">fiber_manual_record</span>
+      </button>
+      <button class="p-2 text-daw-dim hover:text-daw-primary transition-colors" title="Forward">
+        <span class="material-symbols-outlined">fast_forward</span>
+      </button>
+      <button class="p-2 text-daw-dim hover:text-daw-primary transition-colors" title="Go to End">
+        <span class="material-symbols-outlined">skip_next</span>
+      </button>
+    </div>
+    
+    <!-- Time Display -->
+    <div class="flex items-center gap-4 font-mono text-daw-dim mr-4">
+      <div class="text-right">
+        <div class="text-xs text-daw-dim">BARS:BEATS:TICKS</div>
+        <div class="text-lg font-semibold text-white" id="timeDisplay">024.03.180</div>
+      </div>
+      <div class="text-right border-l border-white/5 pl-4">
+        <div class="text-xs text-daw-dim">ELAPSED</div>
+        <div class="text-lg font-semibold text-white" id="elapsedDisplay">01:14.28</div>
+      </div>
+    </div>
+    
+    <!-- Loop & Metronome -->
+    <div class="flex items-center gap-2 border-l border-white/5 pl-4">
+      <button id="loopBtn" class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-label text-daw-primary bg-daw-primary/10 rounded-md hover:bg-daw-primary/20 transition-colors" title="Loop Region">
+        <span class="material-symbols-outlined">loop</span>
+        <span>LOOP</span>
+      </button>
+      <button id="metroBtn" class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-label text-daw-amber bg-daw-amber/10 rounded-md hover:bg-daw-amber/20 transition-colors" title="Metronome">
+        <span class="material-symbols-outlined">metronome</span>
+        <span>CLICK</span>
+      </button>
+    </div>
+    
+    <!-- Right Actions -->
+    <div class="flex items-center gap-1 border-l border-white/5 pl-4">
+      <button class="p-2 text-daw-dim hover:text-daw-primary transition-colors" title="Undo">
+        <span class="material-symbols-outlined">undo</span>
+      </button>
+      <button class="p-2 text-daw-dim hover:text-daw-primary transition-colors" title="Redo">
+        <span class="material-symbols-outlined">redo</span>
+      </button>
+      <div class="w-px h-6 bg-white/10 mx-1"></div>
+      <div class="flex items-center gap-1 px-2 py-1 text-xs font-mono text-daw-dim bg-daw-bg rounded-sm">
+        <span class="material-symbols-outlined text-sm">memory</span>
+        <span>42%</span>
+      </div>
+      <div class="w-px h-6 bg-white/10 mx-1"></div>
+      <button class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-label text-white bg-daw-primary hover:bg-daw-primary/90 rounded-md transition-colors" title="Export">
+        <span class="material-symbols-outlined">download</span>
+        <span>EXPORT</span>
+      </button>
+    </div>
+  </header>
+  
+  <!-- MAIN WORK AREA -->
+  <div class="flex-1 flex overflow-hidden">
+    <!-- LEFT SIDEBAR - LOOP LIBRARY -->
+    <aside id="sidebar" class="flex w-[280px] shrink-0 flex-col border-r border-white/5 bg-daw-surface transition-all duration-200">
+      <!-- Sidebar Header -->
+      <div class="flex h-12 shrink-0 items-center justify-between border-b border-white/5 px-3">
+        <span class="font-label text-sm text-daw-dim uppercase tracking-wider">Bibliothèque</span>
+        <button id="collapseSidebar" class="p-1 text-daw-dim hover:text-white transition-colors" title="Collapse">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+      </div>
+      
+      <!-- Search & Filters -->
+      <div class="p-3 space-y-2 border-b border-white/5">
+        <input type="search" placeholder="Rechercher boucles..." class="w-full px-3 py-2 text-sm text-white bg-daw-bg border border-white/10 rounded-md focus:border-daw-primary focus:outline-none placeholder-daw-dim" />
+        <div class="flex flex-wrap gap-1">
+          <button class="px-2 py-1 text-xs font-label text-daw-primary bg-daw-primary/10 rounded-sm hover:bg-daw-primary/20 transition-colors">120-128 BPM</button>
+          <button class="px-2 py-1 text-xs font-label text-daw-dim bg-daw-bg border border-white/10 rounded-sm hover:bg-daw-hover hover:text-white transition-colors">Minor</button>
+          <button class="px-2 py-1 text-xs font-label text-daw-dim bg-daw-bg border border-white/10 rounded-sm hover:bg-daw-hover hover:text-white transition-colors">One-Shot</button>
+          <button class="px-2 py-1 text-xs font-label text-daw-dim bg-daw-bg border border-white/10 rounded-sm hover:bg-daw-hover hover:text-white transition-colors">Melodic</button>
+        </div>
+      </div>
+      
+      <!-- Category Tabs -->
+      <div class="flex shrink-0 border-b border-white/5 px-2 py-1" role="tablist">
+        <button class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-sm font-label text-daw-primary bg-daw-primary/10 rounded-md" role="tab" aria-selected="true" data-category="drums">
+          <span class="material-symbols-outlined">drum</span>
+          <span>Drums</span>
+        </button>
+        <button class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-sm font-label text-daw-dim hover:text-white hover:bg-daw-hover rounded-md transition-colors" role="tab" aria-selected="false" data-category="bass">
+          <span class="material-symbols-outlined">bass</span>
+          <span>Bass</span>
+        </button>
+        <button class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-sm font-label text-daw-dim hover:text-white hover:bg-daw-hover rounded-md transition-colors" role="tab" aria-selected="false" data-category="synth">
+          <span class="material-symbols-outlined">synthesizer</span>
+          <span>Synth</span>
+        </button>
+        <button class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-sm font-label text-daw-dim hover:text-white hover:bg-daw-hover rounded-md transition-colors" role="tab" aria-selected="false" data-category="fx">
+          <span class="material-symbols-outlined">auto_awesome</span>
+          <span>FX</span>
+        </button>
+        <button class="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-sm font-label text-daw-dim hover:text-white hover:bg-daw-hover rounded-md transition-colors" role="tab" aria-selected="false" data-category="loops">
+          <span class="material-symbols-outlined">loop</span>
+          <span>Loops</span>
+        </button>
+      </div>
+      
+      <!-- Loop List -->
+      <div class="flex-1 overflow-y-auto p-2 space-y-2" id="loopList">
+        <!-- Loop cards rendered by JS -->
+      </div>
+    </aside>
+    
+    <!-- CENTER-RIGHT: ARRANGEMENT AREA -->
+    <main class="flex-1 flex flex-col overflow-hidden">
+      <!-- Track Headers + Timeline Container -->
+      <div class="flex-1 flex overflow-hidden relative">
+        <!-- TRACK HEADERS -->
+        <div id="trackHeaders" class="flex w-[200px] shrink-0 flex-col border-r border-white/5 bg-daw-surface overflow-y-auto">
+          <!-- Track headers rendered by JS -->
+        </div>
+        
+        <!-- TIMELINE -->
+        <div id="timeline" class="flex-1 relative overflow-auto bg-daw-bg timeline-grid" style="background-position: 0 0;">
+          <!-- Ruler -->
+          <div class="absolute top-0 left-0 right-0 h-10 bg-daw-surface border-b border-white/5 z-10 flex items-end px-[200px]">
+            <div class="flex w-full" id="ruler">
+              <!-- Measure markers rendered by JS -->
+            </div>
+          </div>
+          
+          <!-- Track Lanes -->
+          <div id="trackLanes" class="absolute top-10 left-0 right-0 bottom-0 px-[200px]">
+            <!-- Lanes rendered by JS -->
+          </div>
+          
+          <!-- Playhead -->
+          <div id="playhead" class="playhead-line absolute top-10 left-[200px] w-[2px] h-full bg-daw-primary pointer-events-none z-20" style="transform: translateX(240px);"></div>
+          
+          <!-- Loop Region -->
+          <div id="loopRegion" class="absolute top-10 left-[200px] h-full bg-daw-primary/10 border-x-2 border-daw-primary pointer-events-none z-5 hidden" style="left: calc(200px + 480px); width: 480px;"></div>
+        </div>
+      </div>
+      
+      <!-- MASTER TRACK STRIP -->
+      <div class="flex h-[64px] shrink-0 items-center gap-4 border-t border-white/5 bg-daw-surface px-4 shadow-inner">
+        <div class="flex items-center gap-3 w-[200px] shrink-0">
+          <span class="material-symbols-outlined text-daw-primary">speaker</span>
+          <span class="font-label text-sm font-medium text-white">MASTER</span>
+        </div>
+        <div class="flex-1 flex items-center justify-end gap-4">
+          <div class="flex items-center gap-2 text-xs font-mono text-daw-dim">
+            <span class="material-symbols-outlined text-sm">volume_up</span>
+            <span>-14.2</span>
+            <span>LUFS</span>
+          </div>
+          <div class="flex items-center gap-2 text-xs font-mono text-daw-dim">
+            <span class="material-symbols-outlined text-sm">straighten</span>
+            <span>-0.3</span>
+            <span>dBTP</span>
+          </div>
+          <button class="flex items-center gap-1.5 px-2 py-1 text-xs font-label text-daw-dim bg-daw-bg border border-white/10 rounded-sm hover:bg-daw-hover hover:text-white transition-colors" title="Mono">
+            <span class="material-symbols-outlined">music_note</span>
+            <span>MONO</span>
+          </button>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono text-daw-dim">WIDTH</span>
+            <input type="range" min="0" max="200" value="100" class="w-24 h-1 bg-daw-bg rounded-full appearance-none accent-daw-primary" />
+            <span class="text-xs font-mono text-white w-12 text-right">100%</span>
+          </div>
+          <div class="w-24">
+            <input type="range" min="-60" max="6" value="0" class="w-full h-1 bg-daw-bg rounded-full appearance-none accent-daw-primary" />
+          </div>
+          <span class="text-sm font-mono text-white w-12 text-right" id="masterFaderValue">0.0 dB</span>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+// Loop data
+const loops = [
+  { id: 1, name: 'Sub Heavy Groove 01', category: 'bass', bpm: 124, key: 'F# min', duration: '0:08', bars: '4 Bars', waveform: 'bass' },
+  { id: 2, name: 'Neon Cyber Pluck', category: 'synth', bpm: 126, key: 'D min', duration: '0:06', bars: '2 Bars', waveform: 'synth' },
+  { id: 3, name: 'Analog Acid Bassline', category: 'bass', bpm: 124, key: 'C min', duration: '0:12', bars: '8 Bars', waveform: 'bass' },
+  { id: 4, name: 'Vocal Chop Atmosphere', category: 'fx', bpm: 124, key: 'F min', duration: '0:04', bars: '1 Bar', waveform: 'fx' },
+  { id: 5, name: 'Punchy 808 Drive', category: 'drums', bpm: 124, key: 'C maj', duration: '0:02', bars: '1 Shot', waveform: 'drums' },
+  { id: 6, name: 'Deep House Drums 124', category: 'drums', bpm: 124, key: '-', duration: '0:16', bars: '8 Bars', waveform: 'drums' },
+  { id: 7, name: 'Warm Reese Pad', category: 'synth', bpm: 124, key: 'G min', duration: '0:16', bars: '8 Bars', waveform: 'synth' },
+  { id: 8, name: 'Glitch Percussion', category: 'fx', bpm: 126, key: '-', duration: '0:04', bars: '2 Bars', waveform: 'fx' },
+  { id: 9, name: 'Subby Kick Loop', category: 'drums', bpm: 124, key: 'C maj', duration: '0:04', bars: '2 Bars', waveform: 'drums' },
+  { id: 10, name: 'FM Bell Melody', category: 'synth', bpm: 124, key: 'A min', duration: '0:08', bars: '4 Bars', waveform: 'synth' },
+];
+
+const tracks = [
+  { id: 1, name: 'Kick & Percussion', type: 'drums', color: '#22c55e', armed: true, mute: false, solo: false, volume: -2.4, pan: 'C', clips: [{start: 0, duration: 4, name: 'Kick Pattern A'}, {start: 4, duration: 4, name: 'Kick Pattern B'}, {start: 8, duration: 4, name: 'Kick Pattern A'}, {start: 12, duration: 4, name: 'Kick Pattern B'}] },
+  { id: 2, name: 'Sub Bass 808', type: 'bass', color: '#60a5fa', armed: false, mute: false, solo: false, volume: -0.8, pan: 'L12', clips: [{start: 0, duration: 16, name: 'Sub Bass 808'}] },
+  { id: 3, name: 'Atmospheric Pad', type: 'synth', color: '#c084fc', armed: false, mute: false, solo: false, volume: -6.0, pan: 'R18', clips: [{start: 4, duration: 12, name: 'Pad Chords'}] },
+  { id: 4, name: 'Lead Synth Arp', type: 'synth', color: '#f43f5e', armed: false, mute: false, solo: false, volume: -3.2, pan: 'C', clips: [{start: 8, duration: 8, name: 'Arp Pattern'}] },
+  { id: 5, name: 'Vocal Chops & FX', type: 'fx', color: '#fbbf24', armed: false, mute: false, solo: false, volume: -4.5, pan: 'L08', clips: [{start: 12, duration: 4, name: 'Vocal Chops'}] },
+];
+
+const TRACK_HEIGHT = 88;
+const BEAT_WIDTH = 120; // pixels per bar
+const TOTAL_BARS = 16;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  renderSidebar();
+  renderTrackHeaders();
+  renderRuler();
+  renderTrackLanes();
+  setupInteractions();
+});
+
+function renderSidebar() {
+  const list = document.getElementById('loopList');
+  list.innerHTML = loops.map(loop => `
+    <div class="group relative bg-daw-surface rounded-lg p-3 hover:bg-daw-hover transition-colors cursor-grab active:cursor-grabbing" draggable="true" data-loop-id="${loop.id}" data-category="${loop.category}">
+      <div class="flex items-start gap-2">
+        <span class="material-symbols-outlined text-daw-dim mt-0.5 shrink-0" title="Drag to timeline">drag_indicator</span>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5 mb-1">
+            <h4 class="font-body text-sm font-medium text-white truncate">${loop.name}</h4>
+            <button class="p-1 text-daw-dim hover:text-daw-primary transition-colors" title="Preview" data-preview="${loop.id}">
+              <span class="material-symbols-outlined">play_arrow</span>
+            </button>
+            <button class="p-1 text-daw-dim hover:text-daw-amber transition-colors" title="Favorite">
+              <span class="material-symbols-outlined">star_outline</span>
+            </button>
+          </div>
+          <div class="flex flex-wrap gap-1 mb-1">
+            <span class="px-1.5 py-0.5 text-xs font-mono text-daw-primary bg-daw-primary/10 rounded-sm">${loop.bpm} BPM</span>
+            <span class="px-1.5 py-0.5 text-xs font-mono text-daw-accent bg-daw-accent/10 rounded-sm">${loop.key}</span>
+            <span class="px-1.5 py-0.5 text-xs font-mono text-daw-dim bg-daw-bg rounded-sm">${loop.bars}</span>
+          </div>
+          <div class="h-4 bg-daw-bg rounded-sm relative overflow-hidden" style="background: linear-gradient(90deg, #0c1428 0%, #1a2a4a 50%, #0c1428 100%);">
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-daw-primary/30 to-transparent animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderTrackHeaders() {
+  const container = document.getElementById('trackHeaders');
+  container.innerHTML = tracks.map(track => `
+    <div class="flex h-[${TRACK_HEIGHT}px] shrink-0 items-center gap-2 border-b border-white/5 px-3 bg-${track.mute ? 'daw-bg' : 'daw-surface'}" data-track-id="${track.id}">
+      <div class="w-2 h-2 rounded-full shrink-0" style="background: ${track.color};"></div>
+      <input type="text" value="${track.name}" class="flex-1 bg-transparent border-none text-sm font-body text-white focus:outline-none focus:bg-daw-hover rounded-sm px-1" data-track-name="${track.id}" />
+      <div class="flex items-center gap-1">
+        <button class="w-6 h-6 flex items-center justify-center text-xs font-label ${track.armed ? 'text-white bg-daw-accent' : 'text-daw-dim hover:text-daw-accent'} rounded-sm transition-colors" data-arm="${track.id}" title="Record Arm">R</button>
+        <button class="w-6 h-6 flex items-center justify-center text-xs font-label ${track.mute ? 'text-white bg-daw-dim' : 'text-daw-dim hover:text-daw-dim'} rounded-sm transition-colors" data-mute="${track.id}" title="Mute">M</button>
+        <button class="w-6 h-6 flex items-center justify-center text-xs font-label ${track.solo ? 'text-daw-bg bg-daw-amber' : 'text-daw-dim hover:text-daw-amber'} rounded-sm transition-colors" data-solo="${track.id}" title="Solo">S</button>
+      </div>
+      <div class="flex items-center gap-1 ml-auto">
+        <span class="text-xs font-mono text-daw-primary w-10 text-right" id="vol-${track.id}">${track.volume.toFixed(1)} dB</span>
+        <input type="range" min="-60" max="6" value="${track.volume}" step="0.1" class="w-20 h-1 bg-daw-bg rounded-full appearance-none accent-daw-primary" data-volume="${track.id}" />
+        <span class="text-xs font-mono text-daw-dim w-10 text-center">${track.pan}</span>
+      </div>
+    </div>
+  `).join('');
+  // Master track header placeholder
+  container.innerHTML += `<div class="flex h-[64px] shrink-0 items-center gap-3 px-3 bg-daw-elevated"><span class="material-symbols-outlined text-daw-primary">speaker</span><span class="font-label text-sm font-medium text-white">MASTER</span></div>`;
+}
+
+function renderRuler() {
+  const ruler = document.getElementById('ruler');
+  let html = '';
+  for (let bar = 1; bar <= TOTAL_BARS; bar++) {
+    const left = (bar - 1) * BEAT_WIDTH;
+    html += `<div class="absolute top-0 left-[${left}px] w-[${BEAT_WIDTH}px] h-full border-r border-white/5 flex items-end pb-1 px-1">`;
+    for (let beat = 1; beat <= 4; beat++) {
+      const beatLeft = (beat - 1) * (BEAT_WIDTH / 4);
+      html += `<div class="absolute left-[${beatLeft}px] bottom-0 w-px h-[60%]" style="background: ${beat === 1 ? '#60a5fa' : 'rgba(255,255,255,0.05)'};"></div>`;
+      if (beat === 1) {
+        html += `<span class="absolute left-[${beatLeft}px] bottom-1 text-[10px] font-mono text-daw-dim">${bar}</span>`;
+      }
+    }
+    html += '</div>';
+  }
+  ruler.innerHTML = html;
+}
+
+function renderTrackLanes() {
+  const container = document.getElementById('trackLanes');
+  container.innerHTML = tracks.map((track, i) => `
+    <div class="absolute left-0 right-0 h-[${TRACK_HEIGHT}px] top-[${i * TRACK_HEIGHT}px] border-b border-white/5 relative" data-track-lane="${track.id}">
+      ${track.clips.map(clip => `
+        <div class="absolute h-[${TRACK_HEIGHT - 8}px] rounded-md cursor-grab hover:cursor-pointer transition-shadow hover:shadow-lg" 
+             style="left: ${clip.start * BEAT_WIDTH}px; width: ${clip.duration * BEAT_WIDTH}px; top: 4px; background: ${track.color}40; border: 1px solid ${track.color};">
+          <div class="p-1 text-[10px] font-label text-white truncate">${clip.name}</div>
+          <div class="absolute bottom-1 right-1 w-4 h-4 bg-white/10 rounded cursor-ew-resize" title="Resize"></div>
+        </div>
+      `).join('')}
+      <div class="absolute inset-0 flex items-center justify-center pointer-events-none" id="dropZone-${track.id}" style="display: none;">
+        <div class="text-center p-4 bg-daw-primary/10 border-2 border-dashed border-daw-primary rounded-lg">
+          <span class="material-symbols-outlined text-daw-primary text-2xl mb-1 block">arrow_downward</span>
+          <span class="text-sm font-label text-daw-primary">Drop loop here</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Interactions
+function setupInteractions() {
+  // Sidebar collapse
+  const sidebar = document.getElementById('sidebar');
+  const collapseBtn = document.getElementById('collapseSidebar');
+  collapseBtn.addEventListener('click', () => {
+    sidebar.classList.toggle('w-[60px]');
+    sidebar.classList.toggle('w-[280px]');
+    const icon = collapseBtn.querySelector('.material-symbols-outlined');
+    icon.textContent = sidebar.classList.contains('w-[60px]') ? 'chevron_right' : 'chevron_left';
+  });
+  
+  // Category tabs
+  document.querySelectorAll('[role="tab"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[role="tab"]').forEach(b => {
+        b.classList.remove('text-daw-primary', 'bg-daw-primary/10');
+        b.classList.add('text-daw-dim', 'hover:bg-daw-hover');
+        b.setAttribute('aria-selected', 'false');
+      });
+      btn.classList.add('text-daw-primary', 'bg-daw-primary/10');
+      btn.classList.remove('text-daw-dim', 'hover:bg-daw-hover');
+      btn.setAttribute('aria-selected', 'true');
+      filterLoops(btn.dataset.category);
+    });
+  });
+  
+  // Drag and drop from sidebar to timeline
+  document.querySelectorAll('[data-loop-id]').forEach(card => {
+    card.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', card.dataset.loopId);
+      card.classList.add('drag-preview');
+    });
+    card.addEventListener('dragend', () => card.classList.remove('drag-preview'));
+  });
+  
+  document.querySelectorAll('[data-track-lane]').forEach(lane => {
+    lane.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      lane.querySelector('[id^="dropZone-"]').style.display = 'flex';
+    });
+    lane.addEventListener('dragleave', () => {
+      lane.querySelector('[id^="dropZone-"]').style.display = 'none';
+    });
+    lane.addEventListener('drop', (e) => {
+      e.preventDefault();
+      lane.querySelector('[id^="dropZone-"]').style.display = 'none';
+      const loopId = parseInt(e.dataTransfer.getData('text/plain'));
+      const loop = loops.find(l => l.id === loopId);
+      if (loop) alert(`Dropped "${loop.name}" on track ${lane.dataset.trackLane}`);
+    });
+  });
+  
+  // Transport buttons
+  let playing = false;
+  const playBtn = document.getElementById('playBtn');
+  const playIcon = document.getElementById('playIcon');
+  playBtn.addEventListener('click', () => {
+    playing = !playing;
+    playIcon.textContent = playing ? 'pause' : 'play_arrow';
+    playBtn.classList.toggle('bg-daw-emerald', playing);
+    playBtn.classList.toggle('bg-daw-rose', !playing);
+    if (playing) animatePlayhead();
+  });
+  
+  function animatePlayhead() {
+    if (!playing) return;
+    const playhead = document.getElementById('playhead');
+    const totalWidth = TOTAL_BARS * BEAT_WIDTH;
+    let pos = parseFloat(playhead.style.transform.replace('translateX(', '').replace('px)', '')) || 200;
+    pos += 2;
+    if (pos > 200 + totalWidth) pos = 200;
+    playhead.style.transform = `translateX(${pos}px)`;
+    requestAnimationFrame(animatePlayhead);
+  }
+  
+  // Volume faders
+  document.querySelectorAll('[data-volume]').forEach(fader => {
+    fader.addEventListener('input', (e) => {
+      const trackId = e.target.dataset.volume;
+      document.getElementById(`vol-${trackId}`).textContent = `${parseFloat(e.target.value).toFixed(1)} dB`;
+    });
+  });
+  
+  // Record button
+  document.getElementById('recordBtn').addEventListener('click', (e) => {
+    const btn = e.currentTarget;
+    const armed = btn.classList.toggle('bg-daw-accent/10');
+    btn.classList.toggle('border-daw-accent', !armed);
+    btn.classList.toggle('border-daw-rose', armed);
+    btn.querySelector('.material-symbols-outlined').textContent = armed ? 'fiber_manual_record' : 'fiber_manual_record';
+    if (armed) btn.classList.add('shadow-[0_0_20px_rgba(244,114,182,0.5)]');
+    else btn.classList.remove('shadow-[0_0_20px_rgba(244,114,182,0.5)]');
+  });
+  
+  // Loop button
+  document.getElementById('loopBtn').addEventListener('click', (e) => {
+    const btn = e.currentTarget;
+    const active = btn.classList.toggle('bg-daw-primary/20');
+    btn.classList.toggle('text-daw-primary', active);
+    btn.classList.toggle('text-daw-dim', !active);
+    document.getElementById('loopRegion').classList.toggle('hidden', !active);
+  });
+  
+  // Metronome
+  document.getElementById('metroBtn').addEventListener('click', (e) => {
+    const btn = e.currentTarget;
+    btn.classList.toggle('bg-daw-amber/20');
+    btn.classList.toggle('text-daw-amber');
+    btn.classList.toggle('text-daw-dim');
+  });
+  
+  // Master fader
+  document.querySelector('#masterFaderValue').parentElement.querySelector('input[type="range"]').addEventListener('input', (e) => {
+    document.getElementById('masterFaderValue').textContent = `${parseFloat(e.target.value).toFixed(1)} dB`;
+  });
+}
+
+function filterLoops(category) {
+  document.querySelectorAll('[data-loop-id]').forEach(card => {
+    if (category === 'all' || card.dataset.category === category) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+</script>
+</body>
+</html>
