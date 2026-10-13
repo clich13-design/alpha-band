@@ -1,0 +1,140 @@
+/* =============================================================
+   ALPHA-Band — Design System : tokens
+   -------------------------------------------------------------
+   Thème : dark, surfaces froides, ZÉRO BORDURE.
+   Toute séparation visuelle passe par :
+     - l'élévation (box-shadow projetée)
+     - le creusement (box-shadow inset)
+     - le liseré (box-shadow 1px — pas de `border`)
+   Typo : JetBrains Mono pour les métriques, Inter pour les labels.
+   ============================================================= */
+
+:root {
+  /* ---------- Surfaces ---------- */
+  --bg:            #080e1a;   /* canvas */
+  --surface:       #0c1428;   /* panneaux, barres */
+  --elevated:      #111d3a;   /* contrôles, cellules pleines */
+  --hover:         #1a2a4a;   /* survol */
+  --sunken:        #05090f;   /* creux : pistes de fader, pads vides */
+
+  /* ---------- Accents ---------- */
+  --primary:       #60a5fa;
+  --primary-hi:    #93c5fd;
+  --primary-lo:    #3b82f6;
+  --accent:        #f472b6;
+  --emerald:       #34d399;
+  --amber:         #fbbf24;
+  --rose:          #f87171;
+
+  /* ---------- Texte ---------- */
+  --fg:            #ffffff;
+  --fg-muted:      #94a3b8;
+  --fg-dim:        #64748b;
+  --fg-on-accent:  #080e1a;
+
+  /* ---------- Couleurs par piste (rotation du design system) ---------- */
+  --t-1: var(--accent);    /* rose  */
+  --t-2: var(--primary);   /* bleu  */
+  --t-3: var(--emerald);   /* vert  */
+  --t-4: var(--amber);     /* ambre */
+  --t-5: var(--primary-lo);
+  --t-6: var(--rose);
+
+  /* ---------- Alpha utils (accents) ---------- */
+  --primary-a05: rgba(96, 165, 250, .05);
+  --primary-a10: rgba(96, 165, 250, .10);
+  --primary-a20: rgba(96, 165, 250, .20);
+  --primary-a30: rgba(96, 165, 250, .30);
+  --primary-a40: rgba(96, 165, 250, .40);
+  --emerald-a10: rgba(52, 211, 153, .10);
+  --emerald-a20: rgba(52, 211, 153, .20);
+  --emerald-a30: rgba(52, 211, 153, .30);
+  --amber-a10:   rgba(251, 191, 36, .10);
+  --amber-a20:   rgba(251, 191, 36, .20);
+  --rose-a10:    rgba(248, 113, 113, .10);
+  --rose-a20:    rgba(248, 113, 113, .20);
+  --accent-a10:  rgba(244, 114, 182, .10);
+  --accent-a20:  rgba(244, 114, 182, .20);
+  --white-a04:   rgba(255, 255, 255, .04);
+  --white-a08:   rgba(255, 255, 255, .08);
+  --black-a40:   rgba(0, 0, 0, .40);
+  --black-a70:   rgba(0, 0, 0, .70);
+
+  /* ---------- Élévation (le SEUL mécanisme de séparation) ---------- */
+  --elev-0: none;
+  --elev-1: 0 1px 2px rgba(0, 0, 0, .40);
+  --elev-2: 0 2px 6px rgba(0, 0, 0, .45), 0 1px 2px rgba(0, 0, 0, .35);
+  --elev-3: 0 8px 24px rgba(0, 0, 0, .50), 0 2px 6px rgba(0, 0, 0, .40);
+  --elev-4: 0 18px 48px rgba(0, 0, 0, .60), 0 4px 12px rgba(0, 0, 0, .45);
+
+  /* Creusement : pads vides, pistes de fader, champs de saisie */
+  --inset-sunken: inset 0 2px 6px rgba(0, 0, 0, .55),
+                  inset 0 -1px 0 rgba(96, 165, 250, .05);
+  /* Relief : contrôle posé sur le canvas */
+  --inset-raised: inset 0 1px 0 rgba(255, 255, 255, .04),
+                  0 1px 2px rgba(0, 0, 0, .40);
+
+  /* Liserés — remplacent les bordures (1px en shadow, jamais `border`) */
+  --seam-right:  -1px 0 0 rgba(3, 6, 12, .85);
+  --seam-left:    1px 0 0 rgba(3, 6, 12, .85);
+  --seam-bottom:  0 -1px 0 rgba(3, 6, 12, .85);
+  --seam-top:     0  1px 0 rgba(3, 6, 12, .85);
+  --hair-top:     0  1px 0 rgba(96, 165, 250, .07);
+  --hair-bottom:  0  1px 0 rgba(96, 165, 250, .07);
+  --hair-right:   -1px 0 0 rgba(96, 165, 250, .07);
+  --hair-left:     1px 0 0 rgba(96, 165, 250, .07);
+
+  /* ---------- Lueurs d'accent ---------- */
+  --glow-primary: 0 0 12px rgba(96, 165, 250, .45);
+  --glow-emerald: 0 0 12px rgba(52, 211, 153, .45);
+  --glow-accent:  0 0 12px rgba(244, 114, 182, .40);
+  --glow-amber:   0 0 12px rgba(251, 191, 36, .40);
+  --glow-rose:    0 0 12px rgba(248, 113, 113, .40);
+
+  /* ---------- Rayons ---------- */
+  --r-xs: 2px;
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-pill: 999px;
+
+  /* ---------- Transitions ---------- */
+  --t-instant: 60ms cubic-bezier(.2, .8, .2, 1);
+  --t-fast:    120ms cubic-bezier(.2, .8, .2, 1);
+  --t-base:    200ms cubic-bezier(.2, .8, .2, 1);
+  --t-slow:    320ms cubic-bezier(.2, .8, .2, 1);
+
+  /* ---------- Typo ---------- */
+  --font-label:    'Inter', system-ui, -apple-system, sans-serif;
+  --font-metric:   'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --fs-2xs: 9px;
+  --fs-xs:  10px;
+  --fs-sm:  11px;
+  --fs-md:  12px;
+  --fs-base:13px;
+  --fs-lg:  15px;
+  --fs-xl:  18px;
+  --fs-2xl: 22px;
+
+  /* ---------- Capitalisation des labels ---------- */
+  --tracking-label: .08em;
+
+  /* ---------- Gabarits ---------- */
+  --header-h:    72px;
+  --sidebar-w:   280px;
+  --trackcol-w:  200px;
+  --seq-head-w:  256px;
+  --inspector-h: 64px;
+  --bar-w:       120px;
+
+  /* ---------- Z-index ---------- */
+  --z-canvas:    1;
+  --z-grid:      2;
+  --z-clips:     3;
+  --z-playhead:  4;
+  --z-overlay:   8;
+  --z-sidebar:  20;
+  --z-transport:40;
+  --z-toast:    60;
+}

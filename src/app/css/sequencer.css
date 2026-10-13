@@ -1,0 +1,331 @@
+/* =============================================================
+   ALPHA-Band — Séquenceur pas-à-pas
+   Grille 8 mesures groupées par temps (4/4), pads 40px.
+   Zéro bordure : creux (inset) pour les pads vides,
+   élévation + lueur pour les pads actifs.
+   ============================================================= */
+
+.seq {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  padding: 0 20px 14px;
+  overflow: hidden;
+}
+
+/* ---------- Rack ---------- */
+
+.seq__rack {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  padding: 14px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--elev-3);
+  overflow: auto;
+}
+
+/* ---------- En-tête des pas ---------- */
+
+.seq__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+.seq__headcol {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: var(--seq-head-w);
+  flex: none;
+  padding-right: 14px;
+}
+.seq__steps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-metric);
+  font-size: var(--fs-md);
+  flex: none;
+}
+.seq__group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px;
+  border-radius: var(--r-sm);
+  background: var(--primary-a05);
+}
+.seq__group--alt { background: var(--elevated); }
+
+.seq__num {
+  display: grid;
+  place-items: center;
+  width: var(--pad-w, 40px);
+  height: 24px;
+  border-radius: var(--r-xs);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--fg-dim);
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.seq__num--beat { background: var(--elevated); color: var(--primary); box-shadow: var(--inset-raised); }
+.seq__num.is-current { background: var(--emerald); color: var(--fg-on-accent); box-shadow: var(--glow-emerald); }
+.seq__num-ping {
+  position: absolute;
+  top: 0; left: 50%;
+  width: 6px; height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: var(--emerald);
+  animation: alpha-ping 1s cubic-bezier(0, 0, .2, 1) infinite;
+}
+
+/* ---------- Piste ---------- */
+
+.seq__track {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+.track-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: var(--seq-head-w);
+  height: 48px;
+  flex: none;
+  padding: 0 11px;
+  border-radius: var(--r-sm);
+  background: var(--elevated);
+  box-shadow: var(--inset-raised);
+  transition: background var(--t-fast), box-shadow var(--t-fast);
+}
+.seq__track.is-selected .track-head {
+  background: var(--hover);
+  box-shadow: var(--inset-raised), inset 2px 0 0 var(--track-color, var(--primary));
+}
+
+.track-head__id { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.track-head__dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--track-color, var(--primary));
+  box-shadow: 0 0 8px var(--track-color, var(--primary));
+  flex: none;
+}
+.track-head__txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.track-head__name { font-size: var(--fs-md); font-weight: 600; color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.track-head__preset { font-family: var(--font-metric); font-size: var(--fs-2xs); color: var(--fg-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.track-head__ctrl { display: flex; align-items: center; gap: 5px; }
+.track-btn {
+  width: 20px; height: 20px;
+  border-radius: var(--r-xs);
+  background: var(--sunken);
+  color: var(--fg-dim);
+  font-family: var(--font-metric);
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  box-shadow: var(--inset-sunken);
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.track-btn:hover { background: var(--hover); color: var(--fg); }
+.track-btn[aria-pressed="true"].is-mute { background: var(--rose); color: var(--fg-on-accent); box-shadow: none; }
+.track-btn[aria-pressed="true"].is-solo { background: var(--amber); color: var(--fg-on-accent); box-shadow: none; }
+
+/* Micro-jauge de volume dans l'en-tête de piste */
+.track-head__vol {
+  position: relative;
+  width: 34px; height: 5px;
+  margin-left: 2px;
+  border-radius: var(--r-pill);
+  background: var(--sunken);
+  box-shadow: var(--inset-sunken);
+  overflow: hidden;
+}
+.track-head__vol span {
+  position: absolute; inset: 0 auto 0 0;
+  border-radius: var(--r-pill);
+  background: var(--primary);
+  box-shadow: 0 0 6px var(--primary-a40);
+}
+
+/* ---------- Pads ---------- */
+
+.seq__pads {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+.seq__group--pads { padding: 0; background: none; }
+.seq__group--pads > .seq__group { padding: 3px; }
+
+.pad {
+  position: relative;
+  width: var(--pad-w, 40px);
+  height: var(--pad-h, 40px);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--fg-dim);
+  box-shadow: var(--inset-sunken);
+  transition: background var(--t-fast), box-shadow var(--t-fast),
+              transform var(--t-instant), color var(--t-fast);
+  flex: none;
+}
+.pad:hover { background: var(--elevated); }
+.pad:active { transform: scale(.94); }
+
+/* Pad actif — élévation + lueur couleur piste */
+.pad.is-on {
+  background: var(--track-color, var(--primary));
+  color: var(--fg-on-accent);
+  box-shadow: var(--inset-raised), var(--elev-2),
+              0 4px 14px color-mix(in srgb, var(--track-color, var(--primary)) 34%, transparent);
+}
+
+/* Pad fantôme — même couleur, opacité réduite */
+.pad.is-ghost {
+  background: color-mix(in srgb, var(--track-color, var(--primary)) 55%, var(--surface));
+  color: var(--fg-muted);
+}
+
+/* Colonne sous le playhead */
+.pad.is-column { background: var(--elevated); }
+.pad.is-on.is-column {
+  background: color-mix(in srgb, var(--track-color, var(--primary)) 82%, var(--emerald));
+}
+
+/* Impact à l'instant du déclenchement */
+.pad.is-hit {
+  transform: scale(.9);
+  box-shadow: var(--inset-raised), 0 0 0 2px var(--emerald),
+              0 0 18px var(--emerald);
+}
+
+/* Vélocité : trait en bas du pad */
+.pad__vel {
+  position: absolute;
+  left: 4px; right: 4px; bottom: 3px;
+  height: 2px;
+  border-radius: var(--r-pill);
+  background: currentColor;
+  opacity: 0;
+}
+.pad.is-on .pad__vel, .pad.is-ghost .pad__vel { opacity: .55; }
+
+/* Piste muetée : les pads s'éteignent */
+.seq__track.is-muted .seq__pads { opacity: .3; }
+.seq__track.is-muted .track-head { opacity: .55; }
+
+/* ---------- Faisceau du playhead ---------- */
+
+.seq__beam {
+  position: absolute;
+  top: 52px;
+  bottom: 14px;
+  width: var(--pad-w, 40px);
+  z-index: var(--z-overlay);
+  pointer-events: none;
+  border-radius: var(--r-sm);
+  background: var(--emerald-a05);
+  box-shadow: inset 0 0 0 1px var(--emerald-a20), 0 0 18px rgba(52, 211, 153, .12);
+  transition: left 60ms linear, opacity var(--t-fast);
+  opacity: 0;
+}
+.seq__beam.is-live { opacity: 1; }
+
+/* ---------- Barre d'outils basse ---------- */
+
+.seq__tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex: none;
+  padding: 10px 14px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--elev-2);
+}
+.seq__tools-left { display: flex; align-items: center; gap: 14px; }
+.seq__tools-right { display: flex; align-items: center; gap: 6px; }
+.seq__tools .field { height: 24px; }
+.seq__tools .range { width: 88px; }
+
+.tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 11px;
+  border-radius: var(--r-sm);
+  background: var(--elevated);
+  color: var(--fg-muted);
+  font-size: var(--fs-md);
+  font-weight: 500;
+  box-shadow: var(--inset-raised);
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-instant);
+}
+.tool:hover { background: var(--hover); color: var(--fg); }
+.tool:active { transform: scale(.96); }
+.tool svg { width: 14px; height: 14px; }
+.tool--danger:hover { background: var(--rose-a20); color: var(--rose); }
+.tool--primary { color: var(--primary); }
+.tool--primary:hover { color: var(--fg); }
+
+.tool-val {
+  font-family: var(--font-metric);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--primary);
+  min-width: 4ch;
+  text-align: right;
+}
+
+.tools-sep { width: 1px; height: 22px; background: var(--bg); box-shadow: var(--hair-right); }
+
+/* ---------- Légende / raccourcis ---------- */
+
+.seq__legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: none;
+  padding: 8px 4px 0;
+  font-size: var(--fs-xs);
+  color: var(--fg-dim);
+  flex-wrap: wrap;
+}
+.seq__legend kbd {
+  display: inline-block;
+  min-width: 16px;
+  padding: 1px 5px;
+  border-radius: var(--r-xs);
+  background: var(--elevated);
+  box-shadow: var(--inset-raised);
+  font-family: var(--font-metric);
+  font-size: var(--fs-2xs);
+  color: var(--fg-muted);
+  text-align: center;
+}
+.seq__legend span { display: inline-flex; align-items: center; gap: 5px; }
+
+/* ---------- Réactivité ---------- */
+@media (max-height: 800px) {
+  :root { --pad-w: 36px; --pad-h: 36px; }
+  .track-head { height: 44px; }
+}
+@media (max-width: 1280px) {
+  :root { --pad-w: 34px; --pad-h: 34px; --seq-head-w: 216px; }
+}

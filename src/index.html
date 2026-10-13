@@ -1,37 +1,47 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" class="dark">
 <head>
   <meta charset="utf-8">
-  <title>ALPHA-Band — POC</title>
+  <title>ALPHA-Band — Arrangement</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231a1d24'/%3E%3Ctext x='50%25' y='58%25' text-anchor='middle' font-family='monospace' font-size='38' fill='%234cc9f0'%3Eα%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="style.css">
+  <meta name="description" content="ALPHA-Band — DAW web. Vue arrangement : timeline, clips, mixage et arrangement de projet.">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230c1428'/%3E%3Cpath d='M14 44h6V28h-6zm10 0h6V16h-6zm10 0h6V22h-6zm10 0h6V12h-6z' fill='%2360a5fa'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+
+  <!-- Design System : tokens → base → modules -->
+  <link rel="stylesheet" href="app/css/tokens.css">
+  <link rel="stylesheet" href="app/css/base.css">
+  <link rel="stylesheet" href="app/css/transport.css">
+  <link rel="stylesheet" href="app/css/sidebar.css">
+  <link rel="stylesheet" href="app/css/arrangement.css">
+  <link rel="stylesheet" href="app/css/mixer.css">
 </head>
 <body>
-  <header>
-    <h1>ALPHA-Band</h1>
-    <p class="subtitle">POC — Proof of Concept (synthé ADSR)</p>
-  </header>
+  <a href="#canvas" class="skip-link">Aller au contenu principal</a>
+  <div class="grain" aria-hidden="true"></div>
 
-  <main>
-    <section id="unlock">
-      <p>Clique sur <strong>Démarrer</strong> pour activer l'audio (les navigateurs bloquent le son avant un geste utilisateur).</p>
-      <button id="start-btn" type="button">Démarrer</button>
-    </section>
+  <div class="app" id="app">
+    <!-- Barre de transport (module transport.js) -->
+    <header id="transport" role="banner"></header>
 
-    <p id="status" class="status">En attente du démarrage…</p>
+    <div class="shell">
+      <!-- Bibliothèque (module sidebar.js) -->
+      <aside id="sidebar" aria-label="Bibliothèque d'instruments"></aside>
 
-    <section id="play" hidden>
-      <p><strong>Instructions :</strong> clique sur les touches du clavier à la souris <em>ou</em> utilise les touches physiques indiquées sous chaque touche.</p>
-      <p>Mapping basé sur la <strong>position physique</strong> de la touche (compatible QWERTY et AZERTY).</p>
-      <div id="keyboard" aria-label="Clavier visuel 17 notes"></div>
-    </section>
-  </main>
+      <!-- Arrangement (module arrangement.js) + rack mixer (module mixer.js) -->
+      <div class="shell__canvas" id="canvas" role="main"></div>
+    </div>
+  </div>
 
-  <footer>
-    <p>Prototype jetable — le code de ce POC n'est pas destiné à être conservé pour la V1.</p>
-  </footer>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="main.js"></script>
+  <script type="module">
+    import { startApp } from './app/js/app.js';
+    startApp({ view: 'arrangement' });
+  </script>
 </body>
 </html>
